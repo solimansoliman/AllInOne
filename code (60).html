@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلباتك سنتر | قارن واطلب</title>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;  /* Blue */
+            --success-color: #27ae60; /* Green */
+            --danger-color: #e74c3c;  /* Red */
+            --warning-color: #f39c12; /* Orange */
+            --dark-color: #34495e;   /* Dark Blue/Grey */
+            --grey-color: #7f8c8d;   /* Grey */
+            --light-grey-color: #ecf0f1;
+            --background-color: #f4f6f9;
+            --card-background: #FFFFFF;
+            --text-color: #333;
+            --new-border-color: #00d2ff;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--card-background);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        /* Step Layout Control */
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .step-content { padding: 25px; }
+        .step-content-narrow { max-width: 420px; margin: 0 auto; }
+
+        /* General Button Styles */
+        .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding: 12px 20px; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: var(--warning-color); color: white; }
+        .btn-secondary { background-color: var(--grey-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-green { background-color: var(--success-color); color: white; }
+        .btn-blue { background-color: var(--primary-color); color: white; }
+        .btn-dark { background-color: var(--dark-color); color: white; }
+        .btn-red { background-color: var(--danger-color); color: white; }
+
+        h3.section-title { text-align: center; margin-top:0; margin-bottom: 25px; color: var(--dark-color); }
+        .back-button { margin-bottom: 15px; width: 100%; }
+
+        /* Form Styling */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--dark-color); }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--light-grey-color); border-radius: 8px; box-sizing: border-box; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); }
+
+        /* ORIGINAL STEPPER DESIGN (RESTORED) */
+        .stepper-container { padding: 20px 15px; position: relative; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--light-grey-color); }
+        .stepper-line { position: absolute; top: 35px; right: 10%; left: 10%; height: 2px; background-color:var(--light-grey-color); z-index: 1; }
+        .stepper-line-progress { position:absolute; top:0; right:0; background-color: var(--success-color); width: 0%; height: 100%; transition: width 0.4s ease-in-out; }
+        .step-item { display: flex; flex-direction: column; align-items: center; text-align: center; width: 70px; z-index: 2; background-color:var(--card-background); cursor: default;}
+        .step-item.clickable { cursor: pointer; }
+        .step-icon { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5em; margin-bottom: 8px; transition: all 0.3s ease; border: 2px solid var(--light-grey-color); color: var(--grey-color); }
+        .step-label { font-size: 0.8em; font-weight: bold; color: var(--grey-color); line-height: 1.2; }
+        .step-item.active .step-icon { border-color: var(--primary-color); background-color: var(--primary-color); color: white; transform: scale(1.1); }
+        .step-item.completed .step-icon { border-color: var(--success-color); background-color: var(--success-color); color: white; font-size: 1.2em; }
+        .step-item.active .step-label { color: var(--primary-color); }
+        .step-item.completed .step-label { color: var(--dark-color); }
+        
+        /* Address View Options */
+        .address-options { display: flex; gap: 10px; margin-bottom: 20px; }
+        .address-option-btn { flex: 1; padding: 12px; border: 2px solid var(--light-grey-color); border-radius: 8px; background-color: #f8f9fa; cursor: pointer; font-weight: bold; }
+        .address-option-btn.active { border-color: var(--primary-color); background-color: #eaf5ff; color: var(--primary-color); }
+        .address-view { display: none; }
+        .address-view.active { display: block; animation: fadeIn 0.3s; }
+
+        /* Cards styling */
+        .restaurant-card { display: block; text-decoration: none; border: 1px solid var(--light-grey-color); border-radius: 10px; margin-bottom: 15px; overflow: hidden; transition: all 0.3s; cursor: pointer;}
+        .restaurant-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .restaurant-card img { width: 100%; height: 160px; object-fit: cover; background-color: var(--light-grey-color); }
+        .restaurant-info { padding: 15px; }
+        .restaurant-info h4 { margin: 0 0 10px; color: var(--dark-color); }
+        .restaurant-details { display: flex; justify-content: space-between; color: var(--grey-color); font-size: 0.9em; }
+
+        /* FINAL & PERFECTED Delivery Card Design */
+        .delivery-card-final { border: 2px solid var(--new-border-color); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s; cursor: pointer; }
+        .delivery-card-final:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.2); }
+        .dc-final-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 15px; border-bottom: 1px solid var(--light-grey-color); }
+        .dc-final-header-left { text-align: right; }
+        .dc-final-header-left h4 { margin: 0 0 5px; font-size: 1.4em; }
+        .dc-final-header-left .recommendation { font-size: 1em; font-weight: bold; }
+        .dc-final-header-left .rating { color: #ffc107; font-size: 1.1em; margin-top: 5px; }
+        .dc-final-header-right { text-align: left; }
+        .dc-final-header-right .fa-motorcycle { font-size: 2em; }
+        .dc-final-header-right p { margin: 0; color: var(--grey-color); }
+        .dc-final-body { display: flex; flex-direction: column-reverse; padding: 15px; }
+        .dc-final-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--light-grey-color); }
+        .dc-final-row:first-of-type { border-bottom: none; }
+        .dc-final-total { border-top: 1px solid var(--text-color); border-bottom: 1px solid var(--text-color); padding: 10px 0 !important; margin: 10px 0; }
+        
+        /* FINAL & PERFECTED Confirmation Page Design */
+        .conf-header { padding: 20px; font-size: 1.3em; font-weight: bold; text-align: center; border-bottom: 1px solid var(--light-grey-color); }
+        .conf-success-msg { background-color: #e9f7ef; color: var(--success-color); text-align: center; padding: 30px 20px; }
+        .conf-success-msg .icon { width: 60px; height: 60px; background-color: var(--success-color); color: white; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 2em; margin-bottom: 15px; }
+        .conf-details-grid { display: grid; grid-template-columns: 1fr; gap: 25px; border-bottom: 1px solid var(--light-grey-color); padding-bottom: 25px; margin-bottom: 25px; }
+        @media (min-width: 700px) { .conf-details-grid { grid-template-columns: 1fr 1fr; } }
+        .order-tracker { list-style: none; padding: 0; position: relative; }
+        .order-tracker::before { content: ''; position: absolute; top: 15px; right: 14px; bottom: 15px; width: 2px; background-color: var(--light-grey-color); }
+        .tracker-item { padding-right: 45px; position: relative; margin-bottom: 25px; }
+        .tracker-item .status-dot { width: 30px; height: 30px; border-radius: 50%; position: absolute; right: 0; top: 0; display: flex; justify-content: center; align-items: center; color: white; background-color: var(--card-background); border: 2px solid var(--light-grey-color); }
+        .tracker-item.completed .status-dot { background-color: var(--success-color); border-color: var(--success-color); }
+        .tracker-item.active .status-dot { background-color: var(--primary-color); border-color: var(--primary-color); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); } 100% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); } }
+        .conf-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 25px; }
+        .conf-footer { text-align: center; padding: 20px; background-color: #f8f9fa; }
+        .btn-new-order { padding: 15px 40px; font-size: 1.2em; }
+
+        /* Confirmation Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1001; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; transform: scale(0.9); transition: all 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        
+        /* Toast Notification (Fixed) */
+        #toast-notification { visibility: hidden; background-color: var(--dark-color); color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translate(-50%, 100px); opacity: 0; min-width: 250px; transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        #toast-notification.show { visibility: visible; transform: translate(-50%, 0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Stepper -->
+        <div class="stepper-container" id="stepper" style="display:none;">
+            <div class="stepper-line"><div class="stepper-line-progress" id="stepper-progress"></div></div>
+            <div class="step-item" id="stepper-5"><div class="step-icon">🏁</div><div class="step-label">إكمال الطلب</div></div>
+            <div class="step-item" id="stepper-4"><div class="step-icon">📲</div><div class="step-label">التطبيقات</div></div>
+            <div class="step-item" id="stepper-3"><div class="step-icon">🍔</div><div class="step-label">الوجبات</div></div>
+            <div class="step-item" id="stepper-2"><div class="step-icon">🍽️</div><div class="step-label">المطعم</div></div>
+            <div class="step-item" id="stepper-1"><div class="step-icon">📍</div><div class="step-label">الموقع</div></div>
+        </div>
+        <div id="step-1" class="step"></div><div id="step-2" class="step"></div>
+        <div id="step-3" class="step"></div><div id="step-4" class="step"></div>
+        <div id="step-5" class="step"></div><div id="step-6" class="step"></div>
+        <div id="step-7" class="step"></div>
+    </div>
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal-content"><h3 id="modal-title"></h3><p id="modal-body"></p><div class="modal-actions" style="display:flex;gap:15px;margin-top:25px;"><button class="btn btn-secondary" id="modal-cancel-btn">تعديل</button><button class="btn btn-success" id="modal-confirm-btn">تأكيد</button></div></div>
+    </div>
+    <div id="toast-notification"></div>
+
+    <script>
+        const placeholderImage = 'https://cdn.vectorstock.com/i/1000v/34/89/picture-icon-photo-gallery-symbol-vector-43413489.jpg';
+        const restaurants = [
+            { id: 'shawarma', name: 'مطعم الشاورما الذهبية', type: 'شرق أوسطي', rating: 4.5, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=60' },
+            { id: 'pizza', name: 'بيتزا روما', type: 'إيطالي', rating: 4.7, image: 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500&auto=format&fit=crop&q=60' },
+            { id: 'burger', name: 'برجر فاكتوري', type: 'أمريكي', rating: 4.4, image: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=500&auto=format&fit=crop&q=60' },
+            { id: 'saudi', name: 'قصر الكبسة', type: 'سعودي', rating: 4.8, image: 'https://images.unsplash.com/photo-1631631889422-e1430585d18d?w=500&auto=format&fit=crop&q=60' },
+            { id: 'indian', name: 'بهارات الهند', type: 'هندي', rating: 4.6, image: 'https://images.unsplash.com/photo-1606495147981-d1385453a746?w=500&auto=format&fit=crop&q=60' },
+            { id: 'seafood', name: 'مرساة الصياد', type: 'بحري', rating: 4.3, image: 'https://images.unsplash.com/photo-1598515214211-89d3c7373058?w=500&auto=format&fit=crop&q=60' },
+            { id: 'healthy', name: 'صحي ولذيذ', type: 'صحي', rating: 4.9, image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&auto=format&fit=crop&q=60' },
+            { id: 'dessert', name: 'سكر وشوكولاتة', type: 'حلويات', rating: 4.7, image: 'https://images.unsplash.com/photo-1567684014764-81831b53b266?w=500&auto=format&fit=crop&q=60' },
+            { id: 'juice', name: 'انتعاش الفاكهة', type: 'عصائر', rating: 4.5, image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=500&auto=format&fit=crop&q=60' },
+            { id: 'pasta', name: 'عالم الباستا', type: 'إيطالي', rating: 4.4, image: 'https://images.unsplash.com/photo-1621996346565-e326e22e782e?w=500&auto=format&fit=crop&q=60' }
+        ];
+        const mealImages = {
+            shawarma: 'https://images.unsplash.com/photo-1566734842405-1a86ffb2d41a?w=500&auto=format&fit=crop&q=60',
+            pizza: 'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=500&auto=format&fit=crop&q=60',
+            burger: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=60',
+            saudi: 'https://images.unsplash.com/photo-1631631889422-e1430585d18d?w=500&auto=format&fit=crop&q=60',
+            indian: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=500&auto=format&fit=crop&q=60',
+            seafood: 'https://images.unsplash.com/photo-1562967916-33221e3a4afa?w=500&auto=format&fit=crop&q=60',
+            healthy: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&auto=format&fit=crop&q=60',
+            dessert: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&auto=format&fit=crop&q=60',
+            juice: 'https://images.unsplash.com/photo-1621263764928-df1444148421?w=500&auto=format&fit=crop&q=60',
+            pasta: 'https://images.unsplash.com/photo-1598866594240-a7161854622a?w=500&auto=format&fit=crop&q=60'
+        };
+        const menus = {
+            shawarma: Array.from({length: 10}, (_, i) => ({ name: `شاورما ${i % 2 === 0 ? 'لحم' : 'دجاج'} ${i+1}`, price: 15 + i, image: mealImages.shawarma })),
+            pizza: Array.from({length: 10}, (_, i) => ({ name: `بيتزا ${i % 2 === 0 ? 'بيبروني' : 'خضار'} ${i+1}`, price: 28 + i*2, image: mealImages.pizza })),
+            burger: Array.from({length: 10}, (_, i) => ({ name: `برجر ${i % 2 === 0 ? 'لحم مشوي' : 'دجاج كرسبي'} ${i+1}`, price: 22 + i, image: mealImages.burger })),
+            saudi: Array.from({length: 10}, (_, i) => ({ name: `كبسة ${i % 2 === 0 ? 'لحم' : 'دجاج'} ${i+1}`, price: 40 + i*3, image: mealImages.saudi })),
+            indian: Array.from({length: 10}, (_, i) => ({ name: `برياني ${i % 2 === 0 ? 'دجاج' : 'لحم'} ${i+1}`, price: 35 + i*2, image: mealImages.indian })),
+            seafood: Array.from({length: 10}, (_, i) => ({ name: `سمك ${i % 2 === 0 ? 'مشوي' : 'مقلي'} ${i+1}`, price: 45 + i*3, image: mealImages.seafood })),
+            healthy: Array.from({length: 10}, (_, i) => ({ name: `سلطة ${i % 2 === 0 ? 'يونانية' : 'كينوا'} ${i+1}`, price: 25 + i, image: mealImages.healthy })),
+            dessert: Array.from({length: 10}, (_, i) => ({ name: `كيك ${i % 2 === 0 ? 'شوكولاتة' : 'فانيلا'} ${i+1}`, price: 18 + i, image: mealImages.dessert })),
+            juice: Array.from({length: 10}, (_, i) => ({ name: `عصير ${i % 2 === 0 ? 'برتقال' : 'مانجو'} ${i+1}`, price: 10 + i, image: mealImages.juice })),
+            pasta: Array.from({length: 10}, (_, i) => ({ name: `باستا ${i % 2 === 0 ? 'ألفريدو' : 'بولونيز'} ${i+1}`, price: 30 + i*2, image: mealImages.pasta }))
+        };
+        const deliveryApps = [
+            { id: 'hungerstation', name: 'هنقرستيشن', eng_name: 'HungerStation', fee: 0, time: '30-40 دقيقة', rating: '4.2', offer: 'توصيل مجاني', recommended: true, color: '#e74c3c' },
+            { id: 'jahez', name: 'جاهز', eng_name: 'Jahez', fee: 7, time: '20-30 دقيقة', rating: '4.5', offer: null, color: '#f39c12' },
+            { id: 'toyou', name: 'تويو', eng_name: 'ToYou', fee: 5, time: '30-45 دقيقة', rating: '4.1', offer: 'الأوفر', color: '#8e44ad' },
+            { id: 'mrsool', name: 'مرسول', eng_name: 'Mrsool', fee: 12, time: '25-40 دقيقة', rating: '4.0', offer: null, color: '#3498db' },
+            { id: 'careem', name: 'كريم', eng_name: 'Careem', fee: 9, time: '15-25 دقيقة', rating: '4.3', offer: 'الأسرع', color: '#2ecc71' },
+            { id: 'shgardi', name: 'شقردي', eng_name: 'Shgardi', fee: 8, time: '30-40 دقيقة', rating: '4.4', offer: null, color: '#d35400' },
+            { id: 'thechefz', name: 'ذا شفز', eng_name: 'The Chefz', fee: 15, time: '40-50 دقيقة', rating: '4.8', offer: 'مطاعم فاخرة', color: '#2c3e50' },
+            { id: 'wssel', name: 'وصل', eng_name: 'Wssel', fee: 6, time: '25-35 دقيقة', rating: '3.9', offer: null, color: '#c0392b' }
+        ];
+        
+        let currentInternalStep = 1; let cart = {}; let selectedRestaurantId = ''; let selectedDeliveryApp = {};
+        const stepMapping = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 3, 6: 4, 7: 5 };
+        
+        function updateStepper(internalStep) {
+            const activeStage = stepMapping[internalStep];
+            if (activeStage === 0) { document.getElementById('stepper').style.display = 'none'; return; }
+            document.getElementById('stepper').style.display = 'flex';
+            
+            document.querySelectorAll('.step-item').forEach(item => {
+                const stage = parseInt(item.id.replace('stepper-', ''));
+                const iconDiv = item.querySelector('.step-icon');
+                item.classList.remove('active', 'completed', 'clickable');
+                item.onclick = null;
+                const originalIcon = item.id === 'stepper-5' ? '🏁' : item.id === 'stepper-4' ? '📲' : item.id === 'stepper-3' ? '🍔' : item.id === 'stepper-2' ? '🍽️' : '📍';
+                iconDiv.innerHTML = originalIcon;
+
+                if (stage < activeStage) {
+                    item.classList.add('completed', 'clickable');
+                    iconDiv.innerHTML = '✔';
+                    const targetInternalStep = Object.keys(stepMapping).find(key => stepMapping[key] === stage && (stage !== 3 || key==='4'));
+                    if(targetInternalStep) item.onclick = () => goToStep(parseInt(targetInternalStep));
+                }
+                if (stage === activeStage) {
+                    item.classList.add('active');
+                }
+                if (internalStep === 7) {
+                    item.classList.add('completed');
+                    iconDiv.innerHTML = '✔';
+                }
+            });
+        }
+        function goToStep(stepNumber) {
+            if (stepNumber === 1) { cart = {}; selectedRestaurantId = ''; selectedDeliveryApp = {}; }
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+            currentInternalStep = stepNumber;
+            updateStepper(currentInternalStep);
+            
+            const renderFunctions = { 1: renderWelcome, 2: renderAddress, 3: renderRestaurantList, 4: renderMenu, 5: renderCart, 6: renderDeliveryOptions, 7: renderConfirmationPage };
+            if (renderFunctions[currentInternalStep]) renderFunctions[currentInternalStep]();
+        }
+
+        function renderWelcome() { 
+            document.getElementById('step-1').innerHTML = `<div class="step-content step-content-narrow"><h3 class="section-title">🎯 طلباتك سنتر | قارن واطلب</h3><p style="text-align:center; color: var(--grey-color); margin-top:-20px; margin-bottom:30px;">يرجى إدخال بياناتك للمتابعة</p><div class="form-group"><label for="name">الاسم الكامل</label><input type="text" id="name" value="محمد عبدالله"></div><div class="form-group"><label for="email">البريد الإلكتروني</label><input type="email" id="email" value="mohammed@example.com"></div><div class="form-group"><label for="phone">رقم الهاتف</label><input type="tel" id="phone" value="0501234567"></div><button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="goToStep(2)">التالي →</button></div>`;
+        }
+        function renderAddress() {
+            document.getElementById('step-2').innerHTML = `<div class="step-content step-content-narrow"><button class="btn btn-secondary back-button" onclick="goToStep(1)">→ العودة للبيانات</button><h3 class="section-title">📍 تحديد العنوان</h3><div class="address-options"><button class="address-option-btn" id="manual-btn">✍️ كتابة العنوان</button><button class="address-option-btn" id="map-btn">🗺️ تحديد من الخريطة</button></div><div id="manual-address-view" class="address-view"><div class="form-group"><label for="address-text">العنوان التفصيلي</label><textarea id="address-text" rows="4" placeholder="مثال: شارع الملك فهد، حي العليا، الرياض"></textarea></div></div><div id="map-address-view" class="address-view"><img src="https://cdn.salla.sa/ePPooo/8e0f2227-7201-4ba8-b2e6-4d26285507f6-1000x661-lmbtvqBqEdHGwqms40dryr4e5pRbKWnO8SdeAvke.jpg" alt="Map" style="width:100%;border-radius:10px;"></div><button class="btn btn-success" style="width:100%; margin-top: 15px;" onclick="goToStep(3)">✔ تأكيد ومتابعة للمطاعم</button></div>`;
+            document.getElementById('manual-btn').onclick = () => showAddressView('manual');
+            document.getElementById('map-btn').onclick = () => showAddressView('map');
+            showAddressView('manual');
+        }
+        function renderRestaurantList() { 
+            document.getElementById('step-3').innerHTML = `<div class="step-content step-content-narrow"><button class="btn btn-secondary back-button" onclick="goToStep(2)">→ العودة للعنوان</button><h3 class="section-title">🍽️ اختر مطعمك</h3>` + 
+            restaurants.map(r => `<a href="#" class="restaurant-card" onclick="selectRestaurant('${r.id}'); return false;"><img src="${r.image}" onerror="this.onerror=null;this.src='${placeholderImage}';"><div class="restaurant-info"><h4>${r.name}</h4><div class="restaurant-details"><span>⭐ ${r.rating}</span><span>${r.type}</span></div></div></a>`).join('') + `</div>`; 
+        }
+        function renderMenu() {
+            const restaurant = restaurants.find(r => r.id === selectedRestaurantId);
+            document.getElementById('step-4').innerHTML = `<div class="step-content step-content-narrow"><button class="btn btn-secondary back-button" onclick="goToStep(3)">→ العودة للمطاعم</button><h3 class="section-title">${restaurant.name}</h3>` + 
+            menus[selectedRestaurantId].map(item => `<div class="menu-item" style="display:flex;align-items:center;padding:15px 0;border-bottom:1px solid var(--light-grey-color);"><img src="${item.image}" style="width:80px;height:80px;border-radius:8px;margin-left:15px;object-fit:cover;" onerror="this.onerror=null;this.src='${placeholderImage}';"><div style="flex-grow:1;"><h4>${item.name}</h4><p>${item.price} ر.س</p></div><button class="btn" style="background-color:white;color:var(--warning-color);border:2px solid var(--warning-color);border-radius:20px;" onclick="addToCart('${item.name}', ${item.price}, '${item.image}')">+ إضافة</button></div>`).join('') +
+            `<button class="btn btn-primary" style="width:100%; margin-top:20px" onclick="goToStep(5)">🛒 مراجعة السلة</button></div>`;
+        }
+        function renderCart() { 
+             const container = document.getElementById('step-5');
+             let cartContent = '';
+             if (Object.keys(cart).length === 0) {
+                 cartContent = '<p style="text-align:center;color:var(--grey-color);">سلتك فارغة حالياً.</p>';
+             } else {
+                 cartContent = Object.entries(cart).map(([name, item]) => `<div style="display:flex;align-items:center;padding:10px;border-radius:10px;background-color:#f8f9fa;margin-bottom:10px;"><img src="${item.imgSrc}" style="width:70px;height:70px;border-radius:8px;margin-left:15px;object-fit:cover;" onerror="this.onerror=null;this.src='${placeholderImage}';"><div style="flex-grow:1;"><h5>${name}</h5></div><div style="display:flex;align-items:center;gap:12px;background-color:white;padding:5px;border-radius:20px;border:1px solid var(--light-grey-color);"><button class="btn" style="width:28px;height:28px;padding:0;border-radius:50%;background-color:var(--primary-color);color:white;" onclick="updateQuantity('${name}', 1)">+</button><span>${item.quantity}</span><button class="btn" style="width:28px;height:28px;padding:0;border-radius:50%;background-color:var(--primary-color);color:white;" onclick="updateQuantity('${name}', -1)">-</button></div></div>`).join('');
+             }
+             container.innerHTML = `<div class="step-content step-content-narrow"><button class="btn btn-secondary back-button" onclick="goToStep(4)">→ العودة للقائمة</button><h3 class="section-title">🛒 سلة مشترياتك</h3><div id="cart-items" style="display:flex;flex-direction:column;gap:15px;">${cartContent}</div><div style="margin-top:25px;padding-top:15px;border-top:2px dashed var(--light-grey-color);"><div style="display:flex;justify-content:space-between;padding:10px 0;font-size:1.1em;"><span>المجموع الفرعي:</span><strong>${calculateSubtotal().toFixed(2)} ريال</strong></div></div><button class="btn btn-primary" style="width:100%; margin-top:20px" onclick="goToStep(6)">🚗 مقارنة أسعار التوصيل</button></div>`;
+        }
+        function renderDeliveryOptions() {
+            const subtotal = calculateSubtotal();
+            document.getElementById('step-6').innerHTML = `<div class="step-content step-content-narrow"><button class="btn btn-secondary back-button" onclick="goToStep(5)">→ العودة للسلة</button><h3 class="section-title">🚗 اختر أفضل عرض توصيل</h3>` +
+            deliveryApps.map(app => `
+                <div class="delivery-card-final" style="${app.recommended ? `border-color: ${app.color}` : ''}" onclick="confirmDeliveryApp('${app.id}')">
+                    <div class="dc-final-header"><div class="dc-final-header-left"><h4>${app.name}</h4> ${app.recommended ? `<span class="recommendation" style="color:${app.color}">(أفضل اختيار)</span>` : ''} <div class="rating"> ${app.rating} ⭐⭐⭐⭐☆</div></div><div class="dc-final-header-right"><i class="fas fa-motorcycle" style="color:${app.color};"></i></div></div>
+                    <div class="dc-final-body"><div class="dc-final-row"><span class="value offer">${app.offer ? app.offer : '-'}</span><span class="label">عروض متاحة</span></div><div class="dc-final-row"><span class="value">${app.time}</span><span class="label">وقت التوصيل</span></div><div class="dc-final-row dc-final-total"><span class="value">${(subtotal + app.fee).toFixed(2)} ر.س</span><span class="label">السعر الإجمالي</span></div><div class="dc-final-row"><span class="value">${app.fee === 0 ? '0 ر.س' : app.fee.toFixed(2) + ' ر.س'}</span><span class="label">رسوم التوصيل</span></div><div class="dc-final-row"><span class="value">${subtotal.toFixed(2)} ر.س</span><span class="label">سعر الوجبات</span></div></div>
+                </div>`).join('') + `</div>`;
+        }
+        function renderConfirmationPage() {
+            const subtotal = calculateSubtotal();
+            const tax = subtotal * 0.15;
+            const restaurant = restaurants.find(r => r.id === selectedRestaurantId);
+            const total = subtotal + selectedDeliveryApp.fee + tax;
+            document.getElementById('step-7').innerHTML = `
+                <div class="conf-header">✔ تأكيد الطلب</div>
+                <div class="conf-success-msg"><div class="icon">✔</div><h2>تم تأكيد طلبك بنجاح!</h2><p>رقم الطلب: #${'FD' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 90000 + 10000)}</p></div>
+                <div class="step-content">
+                    <div class="conf-details-grid">
+                        <div class="conf-section"><h3>📋 ملخص الطلب</h3>${Object.entries(cart).map(([name, item]) => `<div class="dc-final-row" style="border-bottom:none;padding:5px 0;"><span class="label">${name} × ${item.quantity}</span><span class="value">${(item.price * item.quantity).toFixed(2)} ر.س</span></div>`).join('')}
+                            <div style="border-top:1px solid var(--light-grey-color); padding-top:10px; margin-top:10px;">
+                                <div class="dc-final-row"><span class="label">المجموع الفرعي:</span><span class="value">${subtotal.toFixed(2)} ر.س</span></div>
+                                <div class="dc-final-row"><span class="label">رسوم التوصيل:</span><span class="value">${selectedDeliveryApp.fee === 0 ? 'مجاني' : selectedDeliveryApp.fee.toFixed(2) + ' ر.س'}</span></div>
+                                <div class="dc-final-row"><span class="label">الضريبة:</span><span class="value">${tax.toFixed(2)} ر.س</span></div>
+                                <div class="dc-final-row" style="font-size:1.2em;"><strong>المجموع الكلي:</strong><strong>${total.toFixed(2)} ر.س</strong></div>
+                            </div>
+                        </div>
+                        <div class="conf-section"><h3>🚚 معلومات التوصيل</h3><div class="dc-final-row"><span class="label">المطعم:</span><span class="value">${restaurant.name}</span></div><div class="dc-final-row"><span class="label">التطبيق:</span><span class="value">${selectedDeliveryApp.name}</span></div><div class="dc-final-row"><span class="label">وقت التوصيل:</span><span class="value highlight" style="color:var(--primary-color)">${selectedDeliveryApp.time}</span></div></div>
+                    </div>
+                    <h3>📊 تتبع الطلب</h3><ul class="order-tracker" style="list-style: none; padding: 0; position: relative;"><li class="tracker-item completed"><div class="status-dot">✔</div><h4>تم تأكيد الطلب</h4></li><li class="tracker-item active"><div class="status-dot"></div><h4>جاري تحضير الطلب</h4></li><li class="tracker-item"><div class="status-dot"></div><h4>في الطريق إليك</h4></li></ul>
+                    <div class="conf-actions"><button class="btn btn-green">📲 متجر التطبيق</button><button class="btn btn-blue">📞 اتصال بالمطعم</button><button class="btn btn-dark">🔗 مشاركة الطلب</button><button class="btn btn-red">❌ إلغاء الطلب</button></div>
+                </div>
+                <div class="conf-footer"><button class="btn btn-primary btn-new-order" onclick="goToStep(1)">+ طلب جديد</button></div>`;
+        }
+
+        function confirmDeliveryApp(appId) {
+            const app = deliveryApps.find(a => a.id === appId);
+            const subtotal = calculateSubtotal();
+            const total = subtotal + app.fee;
+            const modal = document.getElementById('confirmation-modal');
+            document.getElementById('modal-title').innerText = `تأكيد اختيار "${app.name}"`;
+            document.getElementById('modal-body').innerText = `التكلفة الإجمالية ستكون ${total.toFixed(2)} ريال. هل تود المتابعة؟`;
+            document.getElementById('modal-confirm-btn').onclick = () => { modal.classList.remove('active'); selectDeliveryApp(appId); };
+            document.getElementById('modal-cancel-btn').onclick = () => { modal.classList.remove('active'); };
+            modal.classList.add('active');
+        }
+        function showAddressView(viewType) { document.getElementById('manual-address-view').classList.toggle('active', viewType === 'manual'); document.getElementById('map-address-view').classList.toggle('active', viewType === 'map'); document.getElementById('manual-btn').classList.toggle('active', viewType === 'manual'); document.getElementById('map-btn').classList.toggle('active', viewType === 'map'); }
+        function showToast(message) { const toast = document.getElementById('toast-notification'); toast.innerText = message; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }
+        function selectRestaurant(id) { if (selectedRestaurantId && selectedRestaurantId !== id) cart = {}; selectedRestaurantId = id; goToStep(4); }
+        function addToCart(name, price, imgSrc) { if (cart[name]) cart[name].quantity++; else cart[name] = { price, quantity: 1, imgSrc }; showToast(`تمت إضافة "${name}" للسلة`); }
+        function updateQuantity(name, change) { if (cart[name]) { cart[name].quantity += change; if (cart[name].quantity <= 0) delete cart[name]; renderCart(); } }
+        function selectDeliveryApp(id) { selectedDeliveryApp = deliveryApps.find(app => app.id === id); goToStep(7); }
+        function calculateSubtotal() { return Object.values(cart).reduce((sum, item) => sum + (item.price * item.quantity), 0); }
+
+        document.addEventListener('DOMContentLoaded', () => { goToStep(1); });
+    </script>
+</body>
+</html>
