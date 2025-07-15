@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خدمة توصيل الطعام المحسّنة للجوال</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+        }
+        
+        .header-title {
+            background: linear-gradient(90deg, #1e40af 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* تحسين خطوات التقدم للجوال */
+        .steps-container {
+            padding: 15px 0;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .steps-wrapper {
+            display: inline-flex;
+            min-width: 100%;
+            justify-content: space-between;
+        }
+        
+        .step {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            padding: 0 5px;
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .step-text {
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.3;
+            white-space: normal;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            right: 15px;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: -1;
+        }
+        
+        .progress-line.active {
+            background: linear-gradient(to left, #3b82f6 var(--progress, 0%), #e5e7eb var(--progress, 0%));
+        }
+        
+        /* تحسين البطاقات للجوال */
+        .section-card {
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .restaurant-card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: white;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .restaurant-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .restaurant-img {
+            height: 150px;
+            width: 100%;
+            object-fit: cover;
+            background-color: #f3f4f6;
+        }
+        
+        .app-option {
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            border-radius: 16px;
+        }
+        
+        .app-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* تمييز التطبيق المختار */
+        .app-option.selected {
+            border: 3px solid #10b981;
+            background-color: #f0fdf4;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        
+        .app-option.selected::after {
+            content: "\f00c";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        /* خلفيات مختلفة لكل تطبيق */
+        .app-bg-1 {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+        
+        .app-bg-2 {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+        
+        .app-bg-3 {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        .app-bg-4 {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+        }
+        
+        .app-bg-5 {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+        
+        .app-bg-6 {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+        }
+        
+        /* تحسين الأزرار للجوال */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        /* تحسين خيارات التوصيل */
+        .delivery-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .delivery-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .delivery-option:hover {
+            border-color: #93c5fd;
+        }
+        
+        .delivery-option.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        /* تحسين قائمة الطعام */
+        .menu-item {
+            display: flex;
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: flex-start;
+        }
+        
+        .menu-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-left: 10px;
+            background-color: #f3f4f6;
+        }
+        
+        .menu-details {
+            flex: 1;
+        }
+        
+        /* تحسين سلة المشتريات */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+        }
+        
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+        }
+        
+        .cart-item-control {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .cart-item-count {
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        /* تحسين تخطيط التطبيقات */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        /* تحسين صفحة التأكيد */
+        .confirmation-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .tracking-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 30px 0;
+            padding: 0 15px;
+        }
+        
+        .tracking-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            width: 25%;
+        }
+        
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .step-circle.completed {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+        
+        .step-circle.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .step-circle.pending {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .step-label {
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .step-label.active {
+            color: #1e40af;
+            font-weight: bold;
+        }
+        
+        .tracking-line {
+            position: absolute;
+            top: 16px;
+            left: 15px;
+            right: 15px;
+            height: 4px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+        
+        .tracking-progress {
+            position: absolute;
+            top: 16px;
+            left: 15px;
+            height: 4px;
+            background: linear-gradient(to right, #10b981 0%, #3b82f6 100%);
+            z-index: 1;
+            width: 50%;
+        }
+        
+        /* تحسين شريط البحث والفلاتر */
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        /* تحسين الأزرار الملاحية */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .nav-buttons .btn {
+            margin: 0;
+            flex: 1;
+        }
+        
+        /* تحسينات للشاشات الكبيرة */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 750px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .steps-container {
+                overflow: visible;
+            }
+            
+            .steps-wrapper {
+                display: flex;
+                min-width: auto;
+            }
+            
+            .step {
+                min-width: auto;
+            }
+            
+            .app-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .container {
+                max-width: 980px;
+            }
+            
+            .app-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* رسالة التأكيد */
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .confirmation-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .confirmation-modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header i {
+            font-size: 48px;
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+        
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        .modal-body {
+            margin-bottom: 25px;
+        }
+        
+        .modal-body p {
+            text-align: center;
+            font-size: 18px;
+            color: #475569;
+            line-height: 1.6;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .modal-footer button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-cancel {
+            background: #e5e7eb;
+            color: #4b5563;
+            border: none;
+        }
+        
+        .modal-cancel:hover {
+            background: #d1d5db;
+        }
+        
+        .modal-confirm {
+            background: #3b82f6;
+            color: white;
+            border: none;
+        }
+        
+        .modal-confirm:hover {
+            background: #2563eb;
+        }
+        
+        /* رسالة التنبيه */
+        .alert-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f87171;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-message.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* أيقونة افتراضية للصور */
+        .default-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            color: #9ca3af;
+            font-size: 24px;
+        }
+        
+        .restaurant-img.default-icon {
+            font-size: 40px;
+        }
+        
+        .menu-img.default-icon {
+            font-size: 24px;
+        }
+        
+        /* ميزة الترشيح الجديدة */
+        .recommended-app {
+            position: relative;
+            border: 2px solid #f59e0b;
+            animation: pulse 2s infinite;
+        }
+        
+        .recommended-banner {
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            color: white;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 10;
+        }
+        
+        .recommended-reason {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #4b5563;
+            border: 1px dashed #f59e0b;
+        }
+        
+        .recommended-highlight {
+            color: #d97706;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        
+        .recommended-info {
+            background: #fffbeb;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recommended-info i {
+            color: #f59e0b;
+            font-size: 24px;
+        }
+        
+        /* أنماط الأماكن المفضلة */
+        .fav-places-container {
+            margin-bottom: 20px;
+        }
+        
+        .fav-places-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .fav-place-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 12px;
+            background: white;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .fav-place-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #93c5fd;
+        }
+        
+        .fav-place-card.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .fav-place-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            font-size: 18px;
+        }
+        
+        .fav-place-home {
+            background-color: #dbeafe;
+            color: #3b82f6;
+        }
+        
+        .fav-place-work {
+            background-color: #ffedd5;
+            color: #f97316;
+        }
+        
+        .fav-place-other {
+            background-color: #f0fdf4;
+            color: #10b981;
+        }
+        
+        .fav-place-actions {
+            margin-left: auto;
+        }
+        
+        .fav-place-actions button {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        
+        .add-fav-place {
+            width: 100%;
+            padding: 12px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .add-fav-place:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        
+        /* أنماط النافذة المنبثقة */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .popup.active .popup-content {
+            transform: translateY(0);
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .popup-header h3 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+        }
+        
+        .popup-body {
+            margin-bottom: 20px;
+        }
+        
+        .popup-footer {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- رسالة تنبيه -->
+    <div class="alert-message" id="alertMessage">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <span id="alertText">يجب اختيار تطبيق توصيل قبل المتابعة</span>
+    </div>
+    
+    <!-- رسالة تأكيد -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-question-circle"></i>
+                <h2>تأكيد الطلب</h2>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من رغبتك في تأكيد الطلب؟ سيتم إرسال طلبك الآن إلى التطبيق المحدد.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-cancel" id="cancelOrder">إلغاء</button>
+                <button class="modal-confirm" id="confirmOrder">تأكيد الطلب</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نافذة إضافة مكان مفضل -->
+    <div class="popup" id="addPlacePopup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>إضافة مكان مفضل</h3>
+                <button class="popup-close" id="closeAddPlacePopup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="popup-body">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">اسم المكان</label>
+                    <input type="text" id="placeName" class="filter-select" placeholder="مثال: المنزل، العمل">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">نوع المكان</label>
+                    <div class="flex gap-2">
+                        <button class="place-type-btn active" data-type="home">
+                            <i class="fas fa-home mr-1"></i> منزل
+                        </button>
+                        <button class="place-type-btn" data-type="work">
+                            <i class="fas fa-briefcase mr-1"></i> عمل
+                        </button>
+                        <button class="place-type-btn" data-type="other">
+                            <i class="fas fa-map-marker-alt mr-1"></i> آخر
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">المدينة</label>
+                    <select class="filter-select" id="placeCity">
+                        <option>الرياض</option>
+                        <option>جدة</option>
+                        <option>مكة المكرمة</option>
+                        <option>الدمام</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">الحي</label>
+                    <input type="text" id="placeDistrict" class="filter-select" placeholder="اسم الحي">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">العنوان التفصيلي</label>
+                    <textarea id="placeAddress" class="filter-select" rows="2" placeholder="اسم الشارع، رقم المبنى، رقم الشقة"></textarea>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="btn btn-secondary" id="cancelAddPlace">إلغاء</button>
+                <button class="btn btn-primary" id="savePlaceBtn">حفظ المكان</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="mb-5">
+            <h1 class="text-3xl font-extrabold text-center mb-2 header-title">
+                <!-- الأيقونة الجديدة التي تعبر عن المركزية والتوصيل -->
+                <i class="fas fa-people-arrows text-orange-500 mr-2"></i>
+                اطلب وجبتك المثالية
+            </h1>
+            <p class="text-gray-600 text-center">قارن الأسعار، اختر الأسرع، واستمتع بأفضل العروض</p>
+        </header>
+
+        <!-- Progress Steps -->
+        <div class="steps-container">
+            <div class="relative">
+                <div class="progress-line" id="progressLine"></div>
+                <div class="steps-wrapper">
+                    <div class="step active clickable" data-step="1">
+                        <div class="step-icon bg-blue-600 text-white">
+                            <i class="fas fa-map-location-dot"></i>
+                        </div>
+                        <span class="step-text font-bold text-blue-600">الموقع</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-icon bg-gray-200 text-gray-600">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <span class="step-text text-gray-500">المطعم</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-icon bg-gray-200 text-gray-600">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <span class="step-text text-gray-500">الوجبات</span>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-icon bg-gray-200 text-gray-600">
+                            <i class="fas fa-mobile-screen-button"></i>
+                        </div>
+                        <span class="step-text text-gray-500">التطبيقات</span>
+                    </div>
+                    <div class="step" data-step="5">
+                        <div class="step-icon bg-gray-200 text-gray-600">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <span class="step-text text-gray-500">الإكمال</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Location Selection -->
+        <div id="step1" class="step-content active">
+            <div class="section-card">
+                <div class="p-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-map-location-dot text-blue-600 ml-2"></i>
+                        حدد موقع التوصيل
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <div class="search-box">
+                            <input type="text" placeholder="ابحث عن موقعك...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- قسم الأماكن المفضلة -->
+                    <div class="fav-places-container">
+                        <div class="fav-places-header">
+                            <h3 class="text-lg font-bold flex items-center">
+                                <i class="fas fa-heart text-red-500 mr-2"></i>
+                                أماكني المفضلة
+                            </h3>
+                            <button class="text-blue-600 font-medium" id="addNewPlaceBtn">
+                                <i class="fas fa-plus mr-1"></i>  إضافة مكان للمفضلة
+                            </button>
+                        </div>
+                        
+                        <div class="fav-places-list">
+                            <div class="fav-place-card active" data-place="1">
+                                <div class="fav-place-icon fav-place-home">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">المنزل</h4>
+                                    <p class="text-sm text-gray-600">الرياض، حي الورود، شارع الملك عبدالعزيز</p>
+                                </div>
+                                <div class="fav-place-actions">
+                                    <button class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="fav-place-card" data-place="2">
+                                <div class="fav-place-icon fav-place-work">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">العمل</h4>
+                                    <p class="text-sm text-gray-600">الرياض، حي السليمانية، شارع العليا</p>
+                                </div>
+                                <div class="fav-place-actions">
+                                    <button class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="fav-place-card" data-place="3">
+                                <div class="fav-place-icon fav-place-other">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">والدتي</h4>
+                                    <p class="text-sm text-gray-600">الرياض، حي النخيل، شارع الأمير محمد</p>
+                                </div>
+                                <div class="fav-place-actions">
+                                    <button class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="add-fav-place" id="showAddPlaceForm">
+                            <i class="fas fa-plus mr-2"></i>
+                            إضافة مكان جديد
+                        </div>
+                    </div>
+					
+					
+					<div class="bg-gray-100 rounded-xl p-4 mb-4">
+						<div id="map" style="height: 200px; border-radius: 10px; overflow: hidden; background-color: #e5e7eb;" class="default-icon">
+							<i class="fas fa-map-marked-alt"></i>
+						</div>
+						
+						<div class="mt-3 text-center">
+							<button class="btn-secondary">
+								<i class="fas fa-location-crosshairs ml-2"></i>
+								استخدام موقعي الحالي
+							</button>
+						</div>
+					</div>
+					
+					
+                    
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg mb-3">تفاصيل العنوان</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-gray-700 mb-1">المدينة</label>
+                                <select class="filter-select">
+                                    <option>الرياض</option>
+                                    <option>جدة</option>
+                                    <option>مكة المكرمة</option>
+                                    <option>الدمام</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-1">الحي</label>
+                                <input type="text" class="filter-select" placeholder="اسم الحي">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 mb-1">العنوان التفصيلي</label>
+                                <textarea class="filter-select" rows="2" placeholder="اسم الشارع، رقم المبنى، رقم الشقة"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg mb-3">وسيلة التوصيل المفضلة</h3>
+                        <div class="delivery-options">
+                            <div class="delivery-option active">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center ml-3">
+                                    <i class="fas fa-motorcycle text-blue-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">توصيل بالدراجة</h4>
+                                    <p class="text-sm text-gray-600">أسرع وأوفر للمسافات القصيرة</p>
+                                </div>
+                            </div>
+                            <div class="delivery-option">
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center ml-3">
+                                    <i class="fas fa-car-side text-gray-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">توصيل بالسيارة</h4>
+                                    <p class="text-sm text-gray-600">للطلبات الكبيرة والبعيدة</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-buttons">
+                        <button class="btn btn-primary next-step">
+                            <span>التالي</span>
+                            <i class="fas fa-arrow-left ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+		
+   <!-- ============================================================================ -->
+   <!-- ============================================================================ -->
+ 
+        <!-- الخطوات الأخرى تبقى كما هي -->
+        <!-- Step 2: Restaurant Selection -->
+        <!--  <div id="step2" class="step-content hidden"> -->
+            <!-- محتوى الخطوة 2 -->
+         <!-- </div> -->
+
+        <!-- Step 3: Menu Selection -->
+         <!-- <div id="step3" class="step-content hidden"> -->
+            <!-- محتوى الخطوة 3 -->
+         <!-- </div> -->
+
+        <!-- Step 4: App Selection -->
+         <!-- <div id="step4" class="step-content hidden"> -->
+            <!-- محتوى الخطوة 4 -->
+         <!-- </div> -->
+
+        <!-- Step 5: Order Completion -->
+        <!--  <div id="step5" class="step-content hidden"> -->
+            <!-- محتوى الخطوة 5 -->
+         <!-- </div> -->
+		 <!-- </div>-->
+	
+	 
+	
+   <!-- ============================================================================ -->
+   <!-- ============================================================================ -->
+   
+    <!-- Step 2: Restaurant Selection -->
+        <div id="step2" class="step-content hidden">
+            <div class="section-card">
+                <div class="p-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-store text-blue-600 ml-2"></i>
+                        اختر مطعمك المفضل
+                    </h2>
+                    
+                    <div class="search-container">
+                        <div class="search-box">
+                            <input type="text" placeholder="ابحث عن مطعم أو وجبة...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <select class="filter-select">
+                                <option>جميع الفئات</option>
+                                <option>مطاعم عربية</option>
+                                <option>وجبات سريعة</option>
+                                <option>مأكولات بحرية</option>
+                                <option>حلويات</option>
+                            </select>
+                            <select class="filter-select">
+                                <option>الأقرب</option>
+                                <option>الأعلى تقييماً</option>
+                                <option>الأسرع توصيلاً</option>
+                                <option>الأكثر مبيعاً</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="restaurant-list">
+                        <!-- مطعم 1 -->
+                        <div class="restaurant-card" data-restaurant="1">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 right-3 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-crown mr-1"></i>الأفضل
+                                </div>
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.8
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">مطعم الشرق الأوسط</h3>
+                                <p class="text-gray-600 text-sm mb-2">وجبات عربية • $$ • 1.2 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 25-35 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> خصم 20%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- مطعم 2 -->
+                        <div class="restaurant-card" data-restaurant="2">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.5
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">برجر هاوس</h3>
+                                <p class="text-gray-600 text-sm mb-2">وجبات سريعة • $ • 2.5 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 20-30 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> توصيل مجاني
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- مطعم 3 -->
+                        <div class="restaurant-card" data-restaurant="3">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.9
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">سوشي يوشي</h3>
+                                <p class="text-gray-600 text-sm mb-2">وجبات أسيوية • $$$ • 0.8 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 30-45 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> خصم 15%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- مطعم 4 -->
+                        <div class="restaurant-card" data-restaurant="4">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.7
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">بيتزا إيطاليانو</h3>
+                                <p class="text-gray-600 text-sm mb-2">بيتزا • $$ • 1.5 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 20-30 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> خصم على الطلب الكبير
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- مطعم 5 -->
+                        <div class="restaurant-card" data-restaurant="5">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.6
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">مطعم الكبابجي</h3>
+                                <p class="text-gray-600 text-sm mb-2">مشويات • $$ • 1.8 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 25-40 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> توصيل مجاني
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- مطعم 6 -->
+                        <div class="restaurant-card" data-restaurant="6">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="restaurant-img">
+                                <div class="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>4.8
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-bold text-lg">مقهى الحلويات</h3>
+                                <p class="text-gray-600 text-sm mb-2">حلويات • $ • 0.5 كم</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-green-600 font-medium">
+                                        <i class="fas fa-bolt mr-1"></i> 15-25 دقيقة
+                                    </span>
+                                    <span class="text-sm text-blue-600">
+                                        <i class="fas fa-tag mr-1"></i> خصم 10% على الحلويات
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-buttons">
+                        <button class="btn btn-secondary prev-step">
+                            <i class="fas fa-arrow-right mr-2"></i>
+                            السابق
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Menu Selection -->
+        <div id="step3" class="step-content hidden">
+            <div class="section-card">
+                <div class="p-4">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&auto=format&fit=crop&q=60" alt="مطعم" class="w-12 h-12 object-cover rounded-lg ml-3">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">مطعم الشرق الأوسط</h2>
+                            <p class="text-gray-600 text-sm">وجبات عربية • $$ • 1.2 كم</p>
+                        </div>
+                        <div class="ml-auto bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <i class="fas fa-star mr-1"></i>4.8
+                        </div>
+                    </div>
+                    
+                    <div class="flex overflow-x-auto pb-3 mb-4 scrollbar-hide">
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-2 bg-blue-600 text-white rounded-full text-sm whitespace-nowrap">الوجبات الرئيسية</button>
+                            <button class="px-3 py-2 bg-white text-gray-700 rounded-full text-sm whitespace-nowrap border border-gray-200">المقبلات</button>
+                            <button class="px-3 py-2 bg-white text-gray-700 rounded-full text-sm whitespace-nowrap border border-gray-200">المشروبات</button>
+                            <button class="px-3 py-2 bg-white text-gray-700 rounded-full text-sm whitespace-nowrap border border-gray-200">الحلويات</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-list">
+                        <div class="menu-item">
+                            <img src="https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=500&auto=format&fit=crop&q=60" alt="وجبة" class="menu-img">
+                            <div class="menu-details">
+                                <h4 class="font-bold">كبسة لحم</h4>
+                                <p class="text-gray-600 text-sm mb-2">أرز بخاري مع لحم ضأن طري ومكسرات</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-blue-600 font-bold">45 ر.س</p>
+                                    <button class="add-item bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <img src="https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=500&auto=format&fit=crop&q=60" alt="وجبة" class="menu-img">
+                            <div class="menu-details">
+                                <h4 class="font-bold">مندي دجاج</h4>
+                                <p class="text-gray-600 text-sm mb-2">دجاج مدخن مع أرز مبهر على الطريقة اليمنية</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-blue-600 font-bold">35 ر.س</p>
+                                    <button class="add-item bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <img src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&auto=format&fit=crop&q=60" alt="وجبة" class="menu-img">
+                            <div class="menu-details">
+                                <h4 class="font-bold">مشويات مشكلة</h4>
+                                <p class="text-gray-600 text-sm mb-2">تشكيلة من الكباب، الشيش طاووق، وعرايس اللحم</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-blue-600 font-bold">55 ر.س</p>
+                                    <button class="add-item bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <img src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=500&auto=format&fit=crop&q=60" alt="وجبة" class="menu-img">
+                            <div class="menu-details">
+                                <h4 class="font-bold">فتوش</h4>
+                                <p class="text-gray-600 text-sm mb-2">سلطة خضار طازجة مع خبز مقرمش وتتبيلة خاصة</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-blue-600 font-bold">25 ر.س</p>
+                                    <button class="add-item bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <img src="https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=500&auto=format&fit=crop&q=60" alt="وجبة" class="menu-img">
+                            <div class="menu-details">
+                                <h4 class="font-bold">كنافة بالنوتيلا</h4>
+                                <p class="text-gray-600 text-sm mb-2">كنافة مقرمشة مع حشوة نوتيلا وفستق</p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-blue-600 font-bold">30 ر.س</p>
+                                    <button class="add-item bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-gray-50 border-t border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold">سلة المشتريات</h3>
+                        <span class="text-gray-600">3 عناصر</span>
+                    </div>
+                    
+                    <div class="cart-items mb-4">
+                        <div class="cart-item">
+                            <div>
+                                <span class="font-medium">كبسة لحم</span>
+                                <span class="text-gray-600 text-sm block">45 ر.س</span>
+                            </div>
+                            <div class="cart-item-controls">
+                                <span class="cart-item-control minus">-</span>
+                                <span class="cart-item-count">1</span>
+                                <span class="cart-item-control plus">+</span>
+                                <button class="text-red-500 ml-4">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="cart-item">
+                            <div>
+                                <span class="font-medium">مندي دجاج</span>
+                                <span class="text-gray-600 text-sm block">35 ر.س</span>
+                            </div>
+                            <div class="cart-item-controls">
+                                <span class="cart-item-control minus">-</span>
+                                <span class="cart-item-count">1</span>
+                                <span class="cart-item-control plus">+</span>
+                                <button class="text-red-500 ml-4">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="cart-item">
+                            <div>
+                                <span class="font-medium">مشويات مشكلة</span>
+                                <span class="text-gray-600 text-sm block">55 ر.س</span>
+                            </div>
+                            <div class="cart-item-controls">
+                                <span class="cart-item-control minus">-</span>
+                                <span class="cart-item-count">1</span>
+                                <span class="cart-item-control plus">+</span>
+                                <button class="text-red-500 ml-4">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-3">
+                        <div class="flex justify-between items-center font-bold">
+                            <span>المجموع الكلي:</span>
+                            <span class="text-blue-600">135 ر.س</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary prev-step">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    السابق
+                </button>
+                <button class="btn btn-primary next-step">
+                    <span>التالي</span>
+                    <i class="fas fa-arrow-left ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: App Selection -->
+        <div id="step4" class="step-content hidden">
+            <div class="section-card">
+                <div class="p-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-mobile-screen-button text-blue-600 ml-2"></i>
+                        اختر تطبيق التوصيل
+                    </h2>
+                    
+                    <div class="recommended-info">
+                        <i class="fas fa-lightbulb"></i>
+                        <p>نوصي لك بتطبيق <span class="recommended-highlight">طلبات</span> بناءً على معايير السعر الأقل، التوصيل الأسرع، والتقييم الأعلى</p>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-4">قارن الأسعار وأوقات التوصيل واختر الأفضل لك</p>
+                    
+                    <div class="app-grid">
+                        <!-- تطبيق 1 - المرشح -->
+                        <div class="app-option app-bg-1 recommended-app" data-app="1">
+                            <div class="recommended-banner">
+                                <i class="fas fa-crown"></i> المرشح
+                            </div>
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-utensils text-green-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">طلبات</h3>
+                                        <p class="text-gray-600 text-sm">التطبيق الأول للتوصيل</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span class="text-green-600">مجاني</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>20.25 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-green-600">155.25 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="recommended-reason">
+                                    <p>تم الترشيح بناءً على: <span class="recommended-highlight">السعر الأقل</span>، <span class="recommended-highlight">التوصيل الأسرع</span>، و<span class="recommended-highlight">التقييم الأعلى</span></p>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>25-35 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.8</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- تطبيق 2 -->
+                        <div class="app-option app-bg-2" data-app="2">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-motorcycle text-orange-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">هنقرستيشن</h3>
+                                        <p class="text-gray-600 text-sm">توصيل سريع ومضمون</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span>8 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>21.45 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-orange-600">164.45 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>20-30 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.6</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- تطبيق 3 -->
+                        <div class="app-option app-bg-3" data-app="3">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-bolt text-purple-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">توصيل إكسبريس</h3>
+                                        <p class="text-gray-600 text-sm">أسرع توصيل في المدينة</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span>12 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>22.05 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-purple-600">169.05 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>15-25 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.7</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- تطبيق 4 -->
+                        <div class="app-option app-bg-4" data-app="4">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-pizza-slice text-red-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">بيتزا دليفر</h3>
+                                        <p class="text-gray-600 text-sm">متخصصون في توصيل البيتزا</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span>10 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>21.75 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-red-600">166.75 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>25-40 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.5</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- تطبيق 5 -->
+                        <div class="app-option app-bg-5" data-app="5">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-truck text-blue-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">نقل</h3>
+                                        <p class="text-gray-600 text-sm">أكبر شبكة توصيل</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span>7 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>21.3 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-blue-600">163.3 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>30-45 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.6</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- تطبيق 6 -->
+                        <div class="app-option app-bg-6" data-app="6">
+                            <div class="p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center ml-3">
+                                        <i class="fas fa-crown text-yellow-600 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold">الملك للتوصيل</h3>
+                                        <p class="text-gray-600 text-sm">خدمة ملكية</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">سعر الطلب:</span>
+                                        <span>135 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">رسوم التوصيل:</span>
+                                        <span>15 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">الضرائب:</span>
+                                        <span>22.5 ر.س</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold pt-2">
+                                        <span>المجموع:</span>
+                                        <span class="text-yellow-600">172.5 ر.س</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-clock text-blue-500 mr-1"></i>
+                                        <span>18-28 دقيقة</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-star text-yellow-500 mr-1"></i>
+                                        <span>4.9</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-success">
+                                    اختر هذا التطبيق
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn btn-secondary prev-step">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    السابق
+                </button>
+                <button class="btn btn-success" id="completeOrderBtn">
+                    <span>إكمال الطلب</span>
+                    <i class="fas fa-arrow-left ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 5: Order Completion -->
+        <div id="step5" class="step-content hidden">
+            <div class="section-card">
+                <div class="p-4 bg-gradient-to-r from-green-50 to-blue-50">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-center text-green-800 mb-1">تم تأكيد طلبك بنجاح!</h2>
+                    <p class="text-center text-green-700">رقم الطلب: #FD2024-001234</p>
+                </div>
+                
+                <div class="p-4">
+                    <div class="mb-5">
+                        <h3 class="font-bold text-lg mb-3 flex items-center">
+                            <i class="fas fa-receipt text-blue-600 ml-2"></i>
+                            ملخص الطلب
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>كبسة لحم × 1</span>
+                                <span>45 ر.س</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>مندي دجاج × 1</span>
+                                <span>35 ر.س</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>مشويات مشكلة × 1</span>
+                                <span>55 ر.س</span>
+                            </div>
+                            <div class="flex justify-between pt-2">
+                                <span>المجموع الفرعي:</span>
+                                <span>135 ر.س</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>رسوم التوصيل:</span>
+                                <span class="text-green-600">مجاني</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>الضرائب:</span>
+                                <span>20.25 ر.س</span>
+                            </div>
+                            <div class="flex justify-between font-bold pt-2 border-t border-gray-200">
+                                <span>المجموع الكلي:</span>
+                                <span class="text-green-600">155.25 ر.س</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <h3 class="font-bold text-lg mb-3 flex items-center">
+                            <i class="fas fa-truck text-blue-600 ml-2"></i>
+                            معلومات التوصيل
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <p class="text-gray-600 text-sm">المطعم:</p>
+                                <p class="font-medium">مطعم الشرق الأوسط</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">التطبيق:</p>
+                                <p class="font-medium">طلبات</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">وقت التوصيل المتوقع:</p>
+                                <p class="font-medium text-blue-600">25-35 دقيقة</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">عنوان التوصيل:</p>
+                                <p class="font-medium">الرياض، حي النخيل، شارع الملك فهد</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg mb-3 flex items-center">
+                            <i class="fas fa-map-marked-alt text-blue-600 ml-2"></i>
+                            تتبع الطلب
+                        </h3>
+                        
+                        <div class="tracking-container">
+                            <div class="tracking-step">
+                                <div class="step-circle completed">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="step-label active">تم التأكيد</div>
+                            </div>
+                            
+                            <div class="tracking-step">
+                                <div class="step-circle active">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div class="step-label active">قيد التحضير</div>
+                            </div>
+                            
+                            <div class="tracking-step">
+                                <div class="step-circle pending">
+                                    <i class="fas fa-motorcycle"></i>
+                                </div>
+                                <div class="step-label">في الطريق</div>
+                            </div>
+                            
+                            <div class="tracking-step">
+                                <div class="step-circle pending">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="step-label">تم التوصيل</div>
+                            </div>
+                            
+                            <div class="tracking-line"></div>
+                            <div class="tracking-progress"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-mobile-alt mr-2"></i>
+                            التطبيق
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-phone mr-2"></i>
+                            المطعم
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-share mr-2"></i>
+                            مشاركة
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-times mr-2"></i>
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-plus mr-2"></i>
+                    طلب جديد
+                </button>
+            </div>
+        </div>
+    </div>
+   
+   
+   	
+   <!-- ============================================================================ -->
+   <!-- ============================================================================ -->
+   
+		
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 5;
+        let selectedApp = null;
+        
+        // بيانات الأماكن المفضلة
+        let favoritePlaces = [
+            {
+                id: 1,
+                name: "المنزل",
+                type: "home",
+                city: "الرياض",
+                district: "حي الورود",
+                address: "شارع الملك عبدالعزيز",
+                icon: "fa-home",
+                color: "#3b82f6"
+            },
+            {
+                id: 2,
+                name: "العمل",
+                type: "work",
+                city: "الرياض",
+                district: "حي السليمانية",
+                address: "شارع العليا",
+                icon: "fa-briefcase",
+                color: "#f97316"
+            },
+            {
+                id: 3,
+                name: "والدتي",
+                type: "other",
+                city: "الرياض",
+                district: "حي النخيل",
+                address: "شارع الأمير محمد",
+                icon: "fa-map-marker-alt",
+                color: "#10b981"
+            }
+        ];
+        
+        let selectedPlaceType = "home";
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStepDisplay();
+            addEventListeners();
+            renderFavoritePlaces();
+        });
+
+        function addEventListeners() {
+            // Next step buttons
+            document.querySelectorAll('.next-step').forEach(button => {
+                button.addEventListener('click', nextStep);
+            });
+
+            // Previous step buttons
+            document.querySelectorAll('.prev-step').forEach(button => {
+                button.addEventListener('click', prevStep);
+            });
+
+            // Step navigation
+            document.querySelectorAll('.step').forEach(step => {
+                step.addEventListener('click', function() {
+                    const stepNumber = parseInt(this.dataset.step);
+                    // Allow navigation to completed steps and current step only
+                    if (stepNumber <= currentStep || this.classList.contains('completed') || this.classList.contains('active')) {
+                        goToStep(stepNumber);
+                    }
+                });
+            });
+
+            // Restaurant selection
+            document.querySelectorAll('.restaurant-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    nextStep();
+                });
+            });
+
+            // Delivery options
+            document.querySelectorAll('.delivery-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // App options - اختيار التطبيق عند الضغط على البطاقة
+            document.querySelectorAll('.app-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // إزالة التحديد من جميع البطاقات
+                    document.querySelectorAll('.app-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        const button = opt.querySelector('.btn-success');
+                        button.textContent = 'اختر هذا التطبيق';
+                        button.classList.remove('btn-disabled');
+                    });
+                    
+                    // إضافة التحديد للبطاقة الحالية
+                    this.classList.add('selected');
+                    const button = this.querySelector('.btn-success');
+                    button.textContent = 'تم الاختيار';
+                    button.classList.add('btn-disabled');
+                    
+                    // حفظ التطبيق المختار
+                    selectedApp = this.dataset.app;
+                });
+            });
+
+            // زر إكمال الطلب مع رسالة تأكيد
+            document.getElementById('completeOrderBtn').addEventListener('click', function() {
+                if (!selectedApp) {
+                    showAlert('يجب اختيار تطبيق توصيل قبل المتابعة');
+                    return;
+                }
+                
+                // عرض رسالة التأكيد
+                document.getElementById('confirmationModal').classList.add('active');
+            });
+
+            // تأكيد الطلب
+            document.getElementById('confirmOrder').addEventListener('click', function() {
+                // إخفاء رسالة التأكيد
+                document.getElementById('confirmationModal').classList.remove('active');
+                
+                // الانتقال للخطوة التالية
+                nextStep();
+            });
+
+            // إلغاء الطلب
+            document.getElementById('cancelOrder').addEventListener('click', function() {
+                document.getElementById('confirmationModal').classList.remove('active');
+            });
+
+            // Add to cart buttons
+            document.querySelectorAll('.add-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Add animation or feedback here
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    this.classList.remove('bg-blue-100', 'text-blue-600');
+                    this.classList.add('bg-green-100', 'text-green-600');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-plus"></i>';
+                        this.classList.remove('bg-green-100', 'text-green-600');
+                        this.classList.add('bg-blue-100', 'text-blue-600');
+                    }, 1000);
+                });
+            });
+
+            // Cart quantity controls
+            document.querySelectorAll('.cart-item-control.plus').forEach(button => {
+                button.addEventListener('click', function() {
+                    const countElement = this.previousElementSibling;
+                    let count = parseInt(countElement.textContent);
+                    countElement.textContent = count + 1;
+                    updateCartTotal();
+                });
+            });
+
+            document.querySelectorAll('.cart-item-control.minus').forEach(button => {
+                button.addEventListener('click', function() {
+                    const countElement = this.nextElementSibling;
+                    let count = parseInt(countElement.textContent);
+                    if (count > 1) {
+                        countElement.textContent = count - 1;
+                        updateCartTotal();
+                    }
+                });
+            });
+            
+            // إظهار نافذة إضافة مكان مفضل
+            document.getElementById('addNewPlaceBtn').addEventListener('click', showAddPlacePopup);
+            document.getElementById('showAddPlaceForm').addEventListener('click', showAddPlacePopup);
+            
+            // إغلاق نافذة إضافة مكان مفضل
+            document.getElementById('closeAddPlacePopup').addEventListener('click', closeAddPlacePopup);
+            document.getElementById('cancelAddPlace').addEventListener('click', closeAddPlacePopup);
+            
+            // تغيير نوع المكان
+            document.querySelectorAll('.place-type-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.place-type-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedPlaceType = this.dataset.type;
+                });
+            });
+            
+            // حفظ المكان الجديد
+            document.getElementById('savePlaceBtn').addEventListener('click', saveNewPlace);
+            
+            // اختيار مكان مفضل
+            document.querySelectorAll('.fav-place-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    if (event.target.closest('.fav-place-actions')) return;
+                    
+                    document.querySelectorAll('.fav-place-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // يمكن هنا تحديث حقول العنوان بالمكان المختار
+                    const placeId = this.dataset.place;
+                    const place = favoritePlaces.find(p => p.id == placeId);
+                    
+                    if (place) {
+                        document.querySelector('select.filter-select').value = place.city;
+                        document.querySelector('input[placeholder="اسم الحي"]').value = place.district;
+                        document.querySelector('textarea[placeholder="اسم الشارع، رقم المبنى، رقم الشقة"]').value = place.address;
+                    }
+                });
+            });
+        }
+        
+        // عرض نافذة إضافة مكان مفضل
+        function showAddPlacePopup() {
+            document.getElementById('addPlacePopup').classList.add('active');
+        }
+        
+        // إغلاق نافذة إضافة مكان مفضل
+        function closeAddPlacePopup() {
+            document.getElementById('addPlacePopup').classList.remove('active');
+            resetAddPlaceForm();
+        }
+        
+        // إعادة تعيين نموذج إضافة مكان
+        function resetAddPlaceForm() {
+            document.getElementById('placeName').value = '';
+            document.getElementById('placeCity').value = 'الرياض';
+            document.getElementById('placeDistrict').value = '';
+            document.getElementById('placeAddress').value = '';
+            
+            document.querySelectorAll('.place-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.place-type-btn[data-type="home"]').classList.add('active');
+            selectedPlaceType = "home";
+        }
+        
+        // حفظ المكان الجديد
+        function saveNewPlace() {
+            const name = document.getElementById('placeName').value;
+            const city = document.getElementById('placeCity').value;
+            const district = document.getElementById('placeDistrict').value;
+            const address = document.getElementById('placeAddress').value;
+            
+            if (!name || !district || !address) {
+                showAlert('يرجى ملء جميع الحقول المطلوبة');
+                return;
+            }
+            
+            // إنشاء مكان جديد
+            const newPlace = {
+                id: Date.now(),
+                name: name,
+                type: selectedPlaceType,
+                city: city,
+                district: district,
+                address: address,
+                icon: getIconForType(selectedPlaceType),
+                color: getColorForType(selectedPlaceType)
+            };
+            
+            // إضافة المكان إلى القائمة
+            favoritePlaces.push(newPlace);
+            
+            // إعادة عرض الأماكن
+            renderFavoritePlaces();
+            
+            // إغلاق النافذة
+            closeAddPlacePopup();
+            
+            // عرض رسالة نجاح
+            showAlert('تم إضافة المكان إلى قائمة المفضلة بنجاح');
+        }
+        
+        // الحصول على أيقونة حسب النوع
+        function getIconForType(type) {
+            switch(type) {
+                case 'home': return 'fa-home';
+                case 'work': return 'fa-briefcase';
+                default: return 'fa-map-marker-alt';
+            }
+        }
+        
+        // الحصول على لون حسب النوع
+        function getColorForType(type) {
+            switch(type) {
+                case 'home': return '#3b82f6';
+                case 'work': return '#f97316';
+                default: return '#10b981';
+            }
+        }
+        
+        // عرض الأماكن المفضلة
+        function renderFavoritePlaces() {
+            const container = document.querySelector('.fav-places-list');
+            container.innerHTML = '';
+            
+            favoritePlaces.forEach(place => {
+                const card = document.createElement('div');
+                card.className = 'fav-place-card';
+                card.dataset.place = place.id;
+                
+                // تمييز المكان الأول كنشط
+                if (place.id === favoritePlaces[0].id) {
+                    card.classList.add('active');
+                }
+                
+                card.innerHTML = `
+                    <div class="fav-place-icon" style="background-color: ${place.color}20; color: ${place.color}">
+                        <i class="fas ${place.icon}"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold">${place.name}</h4>
+                        <p class="text-sm text-gray-600">${place.city}، ${place.district}، ${place.address}</p>
+                    </div>
+                    <div class="fav-place-actions">
+                        <button class="text-red-500 delete-place" data-id="${place.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // إضافة حدث حذف المكان
+            document.querySelectorAll('.delete-place').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const placeId = parseInt(this.dataset.id);
+                    deletePlace(placeId);
+                });
+            });
+            
+            // إضافة حدث اختيار المكان
+            document.querySelectorAll('.fav-place-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    if (event.target.closest('.fav-place-actions')) return;
+                    
+                    document.querySelectorAll('.fav-place-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // تحديث حقول العنوان بالمكان المختار
+                    const placeId = this.dataset.place;
+                    const place = favoritePlaces.find(p => p.id == placeId);
+                    
+                    if (place) {
+                        document.querySelector('select.filter-select').value = place.city;
+                        document.querySelector('input[placeholder="اسم الحي"]').value = place.district;
+                        document.querySelector('textarea[placeholder="اسم الشارع، رقم المبنى، رقم الشقة"]').value = place.address;
+                    }
+                });
+            });
+        }
+        
+        // حذف مكان مفضل
+        function deletePlace(placeId) {
+            if (confirm('هل أنت متأكد من رغبتك في حذف هذا المكان من المفضلة؟')) {
+                favoritePlaces = favoritePlaces.filter(place => place.id !== placeId);
+                renderFavoritePlaces();
+                showAlert('تم حذف المكان من قائمة المفضلة');
+            }
+        }
+
+        function updateCartTotal() {
+            // This function would update the cart total
+            // For simplicity, we're not calculating the actual total here
+            document.querySelector('.cart-items .cart-item-count').textContent = "3";
+            document.querySelector('.cart-items + div .text-blue-600').textContent = "135 ر.س";
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepDisplay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepDisplay();
+            }
+        }
+
+        function goToStep(stepNumber) {
+            if (stepNumber >= 1 && stepNumber <= totalSteps) {
+                currentStep = stepNumber;
+                updateStepDisplay();
+            }
+        }
+
+        function updateStepDisplay() {
+            // Hide all step contents
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('active');
+            });
+
+            // Show current step content
+            const currentContent = document.getElementById(`step${currentStep}`);
+            if (currentContent) {
+                currentContent.classList.remove('hidden');
+                currentContent.classList.add('active');
+            }
+
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((step, index) => {
+                const stepNumber = index + 1;
+                const stepIcon = step.querySelector('.step-icon');
+                const stepText = step.querySelector('.step-text');
+
+                // Remove all classes
+                step.classList.remove('active', 'completed', 'clickable');
+                stepIcon.classList.remove('bg-blue-600', 'bg-green-600', 'bg-gray-200', 'text-white', 'text-gray-600');
+                stepText.classList.remove('text-blue-600', 'text-green-600', 'text-gray-500');
+
+                if (stepNumber < currentStep) {
+                    // Completed step - clickable
+                    step.classList.add('completed', 'clickable');
+                    stepIcon.classList.add('bg-green-600', 'text-white');
+                    stepText.classList.add('text-green-600');
+                    step.style.cursor = 'pointer';
+                } else if (stepNumber === currentStep) {
+                    // Current step - clickable
+                    step.classList.add('active', 'clickable');
+                    stepIcon.classList.add('bg-blue-600', 'text-white');
+                    stepText.classList.add('text-blue-600');
+                    step.style.cursor = 'pointer';
+                } else {
+                    // Future step - not clickable
+                    stepIcon.classList.add('bg-gray-200', 'text-gray-600');
+                    stepText.classList.add('text-gray-500');
+                    step.style.cursor = 'not-allowed';
+                }
+            });
+
+            // Update progress line
+            const progressLine = document.getElementById('progressLine');
+            const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressLine.style.setProperty('--progress', `${progressPercentage}%`);
+            progressLine.classList.add('active');
+
+            // Scroll to top when changing steps
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // إظهار رسالة تنبيه
+        function showAlert(message) {
+            const alert = document.getElementById('alertMessage');
+            document.getElementById('alertText').textContent = message;
+            alert.classList.add('active');
+            
+            setTimeout(() => {
+                alert.classList.remove('active');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
