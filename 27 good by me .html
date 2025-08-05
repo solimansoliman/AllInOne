@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>قارن- نقطة انطلاقك الأولى</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- LeafletJS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        html, body { height: 100%; width: 100%; margin: 0; padding: 0; overscroll-behavior-y: none; font-family: 'Cairo', sans-serif; }
+        .leaflet-container { direction: ltr; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .view { transition: opacity 0.4s ease, transform 0.4s ease; will-change: transform, opacity; }
+        .view.hidden { opacity: 0; transform: scale(0.98); pointer-events: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .modal .transform { transition: all 0.3s ease-out; }
+        .modal.hidden .transform { transform: scale(0.95); opacity: 0; }
+        .autocomplete-container { position: relative; }
+        .autocomplete-items { position: absolute; border: 1px solid #d1d5db; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; max-height: 150px; overflow-y: auto; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; background-color: #fff; border-bottom: 1px solid #d1d5db; }
+        .dark .autocomplete-items div { background-color: #374151; border-color: #4b5563; }
+        .autocomplete-items div:hover { background-color: #f3f4f6; }
+        .dark .autocomplete-items div:hover { background-color: #4b5563; }
+        .map-instruction { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 5px 15px; border-radius: 20px; z-index: 401; font-size: 0.8rem; pointer-events: none; }
+        .best-option-badge { position: absolute; top: -10px; left: 10px; background-color: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; }
+        #notification-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; transition: all 0.5s ease; }
+        #notification-container.hidden { transform: translate(-50%, -150%); opacity: 0; }
+        #side-menu.translate-x-full { transform: translateX(100%); }
+        .notification-dot { position: absolute; top: 0; right: 0; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; border: 1px solid white; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+
+    <div id="app-container" class="relative h-full w-full mx-auto max-w-lg bg-white dark:bg-gray-800 shadow-2xl">
+
+        <!-- ===== 0. واجهة تسجيل الدخول ===== -->
+        <div id="login-view" class="view flex flex-col h-full bg-gray-50 dark:bg-gray-900 p-8 justify-center items-center text-center">
+            <i class="fas fa-route text-6xl text-teal-500 mb-6"></i>
+            <h1 class="text-3xl font-bold mb-2">أهلاً بك في قارن</h1>
+            <p class="text-gray-600 dark:text-gray-400 mb-8">نقطة انطلاقك الأولى لمقارنة الخدمات.</p>
+            <div class="w-full max-w-sm space-y-4">
+                <input type="email" id="email-input" value="demo@qaren.com" placeholder="البريد الإلكتروني" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-teal-500 outline-none">
+                <input type="password" id="password-input" value="123456" placeholder="كلمة المرور" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-teal-500 outline-none">
+                <button id="login-btn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition-colors shadow-lg">تسجيل الدخول</button>
+                <p class="text-sm text-gray-500">ليس لديك حساب؟ <a href="#" class="text-teal-500 hover:underline">إنشاء حساب</a></p>
+            </div>
+        </div>
+        
+        <!-- ===== 0.5. الشاشة الرئيسية (لوحة التحكم) ===== -->
+        <div id="dashboard-view" class="view hidden flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+             <header class="p-4 flex justify-between items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-10 flex-shrink-0">
+                <h1 class="text-xl font-bold">الخدمات الرئيسية</h1>
+                <button id="dashboard-dark-mode-toggle" class="text-gray-600 dark:text-gray-300 hover:text-teal-500 p-2 rounded-full"><i class="fas fa-moon fa-lg"></i></button>
+            </header>
+            <div class="p-6 flex-grow grid grid-cols-2 gap-5">
+                <button id="taxi-btn" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <i class="fas fa-taxi text-4xl text-teal-500 mb-4"></i><h2 class="font-bold text-lg">تطبيقات تاكسي</h2><p class="text-xs text-gray-500 dark:text-gray-400">قارن أسعار رحلتك</p>
+                </button>
+                <button id="restaurants-btn" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <i class="fas fa-utensils text-4xl text-orange-500 mb-4"></i><h2 class="font-bold text-lg">تطبيقات مطاعم</h2><p class="text-xs text-gray-500 dark:text-gray-400">ستتوفر قريباً</p>
+                </button>
+                <button id="parcels-btn" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <i class="fas fa-box-open text-4xl text-blue-500 mb-4"></i><h2 class="font-bold text-lg">نقل الطرود</h2><p class="text-xs text-gray-500 dark:text-gray-400">ستتوفر قريباً</p>
+                </button>
+                <button id="tickets-btn" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center p-6 hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <i class="fas fa-plane-departure text-4xl text-indigo-500 mb-4"></i><h2 class="font-bold text-lg">تذاكر طيران</h2><p class="text-xs text-gray-500 dark:text-gray-400">ستتوفر قريباً</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== 1. واجهة الحجز الرئيسية ===== -->
+        <div id="booking-view" class="view hidden flex flex-col h-full">
+            <header class="p-4 flex justify-between items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-10 flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                    <button id="back-to-dashboard-btn" class="text-gray-600 dark:text-gray-300 hover:text-teal-500 p-2 rounded-full"><i class="fas fa-arrow-right fa-lg"></i></button>
+                    <button id="menu-btn" class="text-gray-600 dark:text-gray-300 hover:text-teal-500 p-2 rounded-full"><i class="fas fa-bars fa-lg"></i></button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="profile-btn" class="relative text-gray-600 dark:text-gray-300 hover:text-teal-500 p-2 rounded-full">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                        <span id="profile-notification-dot" class="notification-dot hidden"></span>
+                    </button>
+                    <button id="dark-mode-toggle" class="text-gray-600 dark:text-gray-300 hover:text-teal-500 p-2 rounded-full"><i class="fas fa-moon fa-lg"></i></button>
+                </div>
+            </header>
+            <div id="map-container" class="flex-grow relative"><div id="map" class="h-full w-full"></div></div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 space-y-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <div class="relative"><div class="flex items-center"><i class="fas fa-map-marker-alt absolute top-1/2 -translate-y-1/2 right-3 text-green-500"></i><input type="text" id="pickup-input" placeholder="نقطة الانطلاق" class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-teal-500 outline-none"><button id="get-location-btn" class="absolute left-2 text-gray-500 hover:text-teal-600 p-1"><i class="fas fa-location-crosshairs fa-lg"></i></button></div></div>
+                <div class="relative autocomplete-container"><i class="fas fa-location-arrow absolute top-1/2 -translate-y-1/2 right-3 text-red-500"></i><input type="text" id="destination-input" placeholder="الوجهة المطلوبة" class="w-full p-3 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                <button id="find-rides-btn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"><i class="fas fa-search ml-2"></i> البحث عن رحلات</button>
+            </div>
+        </div>
+
+        <!-- ===== 2. واجهة اختيار الرحلة ===== -->
+        <div id="selection-view" class="view hidden flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+            <header class="p-4 flex items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <button id="back-to-booking-btn" class="text-gray-600 dark:text-gray-300 hover:text-teal-500"><i class="fas fa-arrow-right fa-lg"></i></button>
+                <div class="flex items-center gap-4">
+                    <div><label for="filter-options" class="ml-2 text-sm text-gray-500 dark:text-gray-400">التطبيق:</label><select id="filter-options" class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-sm rounded-lg p-1"></select></div>
+                    <div><label for="sort-options" class="ml-2 text-sm text-gray-500 dark:text-gray-400">فرز:</label><select id="sort-options" class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-sm rounded-lg p-1"></select></div>
+                </div>
+            </header>
+            <div class="flex-grow p-3 overflow-y-auto relative">
+                 <div id="loading-spinner" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 z-10"><i class="fas fa-spinner fa-spin fa-3x text-teal-500"></i><p class="mt-4">جاري البحث عن أفضل الرحلات لك...</p></div>
+                <div id="rides-list" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- ===== 3. واجهة تتبع الرحلة ===== -->
+        <div id="tracking-view" class="view hidden flex flex-col h-full">
+            <header class="p-4 flex items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-10 flex-shrink-0"><button id="back-to-selection-btn" class="text-gray-600 dark:text-gray-300 hover:text-teal-500"><i class="fas fa-arrow-right fa-lg"></i></button><h2 class="text-lg font-bold mx-auto">تتبع الرحلة</h2><div class="w-8"></div></header>
+            <div id="tracking-map" class="flex-grow"></div>
+            <div id="trip-status-panel" class="p-4 bg-white dark:bg-gray-800 rounded-t-2xl shadow-lg space-y-4 flex-shrink-0"></div>
+        </div>
+
+        <!-- ===== 4. واجهة الملف الشخصي وسجل الرحلات ===== -->
+        <div id="profile-view" class="view hidden flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+            <header class="p-4 flex items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"><button id="back-to-main-from-profile" class="text-gray-600 dark:text-gray-300 hover:text-teal-500"><i class="fas fa-arrow-right fa-lg"></i></button><h2 class="text-lg font-bold mx-auto">الملف الشخصي</h2><div class="w-8"></div></header>
+            <div class="p-6 text-center bg-white dark:bg-gray-800 flex-shrink-0"><img id="profile-avatar" class="w-24 h-24 rounded-full mx-auto border-4 border-teal-500" alt="صورة المستخدم"><h3 id="profile-name" class="mt-4 text-2xl font-bold"></h3><p id="profile-email" class="text-gray-500 dark:text-gray-400"></p></div>
+            <h4 class="p-4 text-lg font-semibold border-t border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex-shrink-0">سجل الرحلات</h4>
+            <div id="trip-history-list" class="flex-grow p-3 space-y-3 overflow-y-auto"><p id="no-history-msg" class="text-center text-gray-500 p-10">لا يوجد رحلات سابقة.</p></div>
+        </div>
+    </div>
+
+    <!-- Side Menu and Overlay -->
+    <div id="side-menu-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300"></div>
+    <div id="side-menu" class="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white dark:bg-gray-800 shadow-xl z-50 transform transition-transform duration-300 translate-x-full flex flex-col">
+        <header class="p-4 flex items-center justify-between border-b dark:border-gray-700 flex-shrink-0">
+            <h2 class="text-lg font-bold text-teal-600 dark:text-teal-400">التطبيقات المتاحة</h2>
+            <button id="side-menu-close-btn" class="text-gray-500 hover:text-red-500 p-2"><i class="fas fa-times fa-lg"></i></button>
+        </header>
+        <div id="side-menu-content" class="flex-grow p-4 overflow-y-auto space-y-4 min-h-0"></div>
+    </div>
+
+    <!-- Modals and Notifications -->
+    <div id="modals-and-notifications">
+        <div id="notification-container" class="hidden"><div id="notification-content" class="max-w-sm mx-auto bg-gray-800 text-white text-sm font-semibold py-2 px-4 rounded-full shadow-lg"></div></div>
+        <div id="confirmation-modal" class="modal hidden absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center space-y-4 transform transition-all"><h3 class="text-2xl font-bold">تأكيد الحجز</h3><div id="confirm-ride-details" class="text-right space-y-3 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg"></div><div class="flex space-x-3" dir="ltr"><button id="confirm-booking-btn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700">تأكيد الحجز</button><button id="change-selection-btn" class="w-full bg-gray-300 dark:bg-gray-600 font-bold py-3 rounded-lg hover:bg-gray-400">تغيير الاختيار</button></div></div></div>
+        <div id="rating-modal" class="modal hidden absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm text-center space-y-4 transform transition-all"><h3 class="text-2xl font-bold">كيف كانت رحلتك؟</h3><img id="rating-driver-img" class="w-24 h-24 rounded-full mx-auto border-4 border-gray-200 object-cover"><p id="rating-driver-name" class="font-semibold text-lg"></p><div id="star-rating" class="flex justify-center text-4xl text-gray-300 cursor-pointer"><i class="far fa-star" data-value="1"></i><i class="far fa-star" data-value="2"></i><i class="far fa-star" data-value="3"></i><i class="far fa-star" data-value="4"></i><i class="far fa-star" data-value="5"></i></div><textarea id="rating-comment" class="w-full p-2 rounded-lg border" rows="3" placeholder="أخبرنا المزيد..."></textarea><button id="submit-rating-btn" class="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700">إرسال التقييم</button><button id="skip-rating-btn" class="text-sm text-gray-500 hover:text-gray-700">تخطي لاحقًا</button></div></div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const mockData = {
+        currentUser: { name: "محمد ابو سليمان", email: "demo@qaren.com", avatar: "https://placehold.co/100x100/9AE6B4/2D3748?text=U" },
+        locations: [ { name: "برج المملكة", coords: [24.711, 46.674] }, { name: "الرياض بارك مول", coords: [24.766, 46.634] }, { name: "مطار الملك خالد الدولي", coords: [24.963, 46.702] }, { name: "حي السفارات", coords: [24.683, 46.633] }, { name: "جامعة الملك سعود", coords: [24.723, 46.628] }, { name: "مركز الملك عبدالله المالي", coords: [24.762, 46.643] } ],
+        services: [
+            { id: 'uber', name: 'أوبر', logo: 'taxi_app_icons_test/Uber.svg', textColor: 'text-black dark:text-white', bgColor: 'bg-gray-100 dark:bg-gray-700', description: 'من التطبيقات العالمية الرائدة، ويقدم فئات مختلفة للركاب.', carTypes: [ { type: 'UberX', name: 'اقتصادي', icon: 'fa-solid fa-car', capacity: 4, priceMultiplier: 1.0 }, { type: 'Comfort', name: 'مريح', icon: 'fa-solid fa-car-side', capacity: 4, priceMultiplier: 1.2 }, { type: 'UberXL', name: 'عائلي', icon: 'fa-solid fa-van-shuttle', capacity: 6, priceMultiplier: 1.5 } ] },
+            { id: 'careem', name: 'كريم', logo: 'taxi_app_icons_test/Careem.svg', textColor: 'text-green-800 dark:text-green-300', bgColor: 'bg-green-50 dark:bg-green-900/50', description: 'يقدم خدمات نقل متنوعة في الشرق الأوسط، وهو مملوك حاليًا لـ أوبر.', carTypes: [ { type: 'Go', name: 'اقتصادي', icon: 'fa-solid fa-car', capacity: 4, priceMultiplier: 1.05 }, { type: 'GoPlus', name: 'بلس', icon: 'fa-solid fa-car-side', capacity: 4, priceMultiplier: 1.25 }, { type: 'MAX', name: 'عائلي', icon: 'fa-solid fa-van-shuttle', capacity: 7, priceMultiplier: 1.6 } ] },
+            { id: 'jeeny', name: 'جيني', logo: 'taxi_app_icons_test/jeeny.svg', textColor: 'text-yellow-800 dark:text-yellow-300', bgColor: 'bg-yellow-50 dark:bg-yellow-900/50', description: 'تطبيق سعودي يتميز بأسعاره المناسبة، وكان يعرف سابقًا باسم إيزي تكسي.', carTypes: [ { type: 'Jeeny', name: 'توفير', icon: 'fa-solid fa-hand-holding-dollar', capacity: 4, priceMultiplier: 0.9 }, { type: 'JeenyXL', name: 'عائلي', icon: 'fa-solid fa-users', capacity: 6, priceMultiplier: 1.35 } ] },
+            { id: 'bolt', name: 'بولت', logo: 'taxi_app_icons_test/Bolt.svg', textColor: 'text-lime-800 dark:text-lime-300', bgColor: 'bg-lime-50 dark:bg-lime-900/50', description: 'يُعد خيارًا اقتصاديًا للتنقل، ويقدم خدمات مثل السيارات والدراجات النارية.', carTypes: [ { type: 'Bolt', name: 'عادي', icon: 'fa-solid fa-car', capacity: 4, priceMultiplier: 0.95 }, { type: 'XL', name: 'عائلي', icon: 'fa-solid fa-van-shuttle', capacity: 6, priceMultiplier: 1.4 } ] },
+            { id: 'kayan', name: 'كيان', logo: 'taxi_app_icons_test/kayan.svg', textColor: 'text-blue-800 dark:text-blue-300', bgColor: 'bg-blue-50 dark:bg-blue-900/50', description: 'تطبيق متاح في جميع مدن السعودية ويوفر ميزات مثل تتبع الرحلة وتقدير السعر.', carTypes: [ { type: 'Kayan', name: 'كيان', icon: 'fa-solid fa-car-rear', capacity: 4, priceMultiplier: 1.0 }, { type: 'KayanPlus', name: 'كيان بلس', icon: 'fa-solid fa-user-tie', capacity: 4, priceMultiplier: 1.15 } ] },
+            { id: 'wasalni', name: 'وصلني', logo: 'taxi_app_icons_test/wasalni.svg', textColor: 'text-red-800 dark:text-red-300', bgColor: 'bg-red-50 dark:bg-red-900/50', description: 'تطبيق سعودي مرخص يوفر رحلات آمنة وموثوقة مع معلومات عن السائق.', carTypes: [ { type: 'Wasalni', name: 'وصلني', icon: 'fa-solid fa-map-marked-alt', capacity: 4, priceMultiplier: 1.1 } ] }
+        ],
+        drivers: [ { name: "خالد الغامدي", rating: 4.8, img: "https://placehold.co/60x60/319795/FFFFFF?text=K" }, { name: "فاطمة الزهراني", rating: 4.9, img: "https://placehold.co/60x60/D53F8C/FFFFFF?text=F" }, { name: "محمد الشهري", rating: 4.7, img: "https://placehold.co/60x60/805AD5/FFFFFF?text=M" }, { name: "نورة العتيبي", rating: 5.0, img: "https://placehold.co/60x60/DD6B20/FFFFFF?text=N" }, { name: "علي الأسمري", rating: 4.6, img: "https://placehold.co/60x60/38A169/FFFFFF?text=A" }, { name: "سارة القحطاني", rating: 4.9, img: "https://placehold.co/60x60/805AD5/FFFFFF?text=S" }, { name: "عبدالرحمن الدوسري", rating: 4.7, img: "https://placehold.co/60x60/D69E2E/FFFFFF?text=D" } ],
+        tripHistory: [
+            { service: {id: 'uber', name: 'أوبر', logo: 'taxi_app_icons_test/Uber.svg'}, carType: {name: 'اقتصادي'}, driver: {name: 'خالد الغامدي'}, price: 25.50, date: '1445/10/25', from: 'برج المملكة', to: 'الرياض بارك مول', userRating: 5 },
+            { service: {id: 'careem', name: 'كريم', logo: 'taxi_app_icons_test/Careem.svg'}, carType: {name: 'بلس'}, driver: {name: 'نورة العتيبي'}, price: 32.00, date: '1445/10/24', from: 'مطار الملك خالد', to: 'حي السفارات', userRating: 4 },
+            { service: {id: 'jeeny', name: 'جيني', logo: 'taxi_app_icons_test/jeeny.svg'}, carType: {name: 'توفير'}, driver: {name: 'محمد الشهري'}, price: 18.75, date: '1445/10/22', from: 'جامعة الملك سعود', to: 'برج المملكة', userRating: 0 }
+        ]
+    };
+
+    const elements = {
+        views: { login: document.getElementById('login-view'), dashboard: document.getElementById('dashboard-view'), booking: document.getElementById('booking-view'), selection: document.getElementById('selection-view'), tracking: document.getElementById('tracking-view'), profile: document.getElementById('profile-view') },
+        modals: { rating: document.getElementById('rating-modal'), confirmation: document.getElementById('confirmation-modal') },
+        buttons: { loginBtn: document.getElementById('login-btn'), taxiBtn: document.getElementById('taxi-btn'), restaurantsBtn: document.getElementById('restaurants-btn'), parcelsBtn: document.getElementById('parcels-btn'), ticketsBtn: document.getElementById('tickets-btn'), backToDashboardBtn: document.getElementById('back-to-dashboard-btn'), menuBtn: document.getElementById('menu-btn'), sideMenuCloseBtn: document.getElementById('side-menu-close-btn'), darkModeToggle: document.getElementById('dark-mode-toggle'), dashboardDarkModeToggle: document.getElementById('dashboard-dark-mode-toggle'), profile: document.getElementById('profile-btn'), findRides: document.getElementById('find-rides-btn'), getLocation: document.getElementById('get-location-btn'), backToBooking: document.getElementById('back-to-booking-btn'), backToSelection: document.getElementById('back-to-selection-btn'), confirmBooking: document.getElementById('confirm-booking-btn'), changeSelection: document.getElementById('change-selection-btn'), submitRating: document.getElementById('submit-rating-btn'), skipRating: document.getElementById('skip-rating-btn'), sortOptions: document.getElementById('sort-options'), filterOptions: document.getElementById('filter-options'), backFromProfile: document.getElementById('back-to-main-from-profile') },
+        inputs: { email: document.getElementById('email-input'), password: document.getElementById('password-input'), pickup: document.getElementById('pickup-input'), destination: document.getElementById('destination-input'), ratingComment: document.getElementById('rating-comment') },
+        containers: { sideMenu: document.getElementById('side-menu'), sideMenuOverlay: document.getElementById('side-menu-overlay'), sideMenuContent: document.getElementById('side-menu-content'), ridesList: document.getElementById('rides-list'), loadingSpinner: document.getElementById('loading-spinner'), notification: document.getElementById('notification-container'), notificationContent: document.getElementById('notification-content'), confirmRideDetails: document.getElementById('confirm-ride-details'), tripStatusPanel: document.getElementById('trip-status-panel'), tripHistoryList: document.getElementById('trip-history-list'), noHistoryMsg: document.getElementById('no-history-msg') },
+        maps: { booking: document.getElementById('map'), tracking: document.getElementById('tracking-map') },
+        profile: { avatar: document.getElementById('profile-avatar'), name: document.getElementById('profile-name'), email: document.getElementById('profile-email'), notificationDot: document.getElementById('profile-notification-dot') },
+        rating: { starContainer: document.getElementById('star-rating'), stars: document.querySelectorAll('#star-rating .fa-star'), driverImg: document.getElementById('rating-driver-img'), driverName: document.getElementById('rating-driver-name') }
+    };
+
+    const appState = { pickupCoords: null, destinationCoords: null, selectedRide: null, currentRating: 0, currentSort: 'grouped', currentFilter: 'all', maps: { bookingMap: null, trackingMap: null, pickupMarker: null, destinationMarker: null, driverMarker: null, routeLine: null }, tripAnimationInterval: null, notificationTimeout: null };
+
+    const showView = (viewId) => { Object.values(elements.views).forEach(v => v.classList.add('hidden')); elements.views[viewId]?.classList.remove('hidden'); };
+    const showModal = (modalId) => { const m = elements.modals[modalId]; if(m){ m.classList.remove('hidden'); setTimeout(() => m.querySelector('.transform').classList.remove('scale-95', 'opacity-0'), 10); }};
+    const hideModal = (modalId) => { const m = elements.modals[modalId]; if(m){ m.querySelector('.transform').classList.add('scale-95', 'opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); }};
+
+    function showNotification(message, type = 'info') {
+        if (appState.notificationTimeout) clearTimeout(appState.notificationTimeout);
+        const content = elements.containers.notificationContent; content.textContent = message;
+        content.className = 'max-w-sm mx-auto text-white text-sm font-semibold py-2 px-4 rounded-full shadow-lg';
+        if (type === 'error') content.classList.add('bg-red-500'); else if (type === 'success') content.classList.add('bg-green-500'); else content.classList.add('bg-gray-800');
+        elements.containers.notification.classList.remove('hidden');
+        appState.notificationTimeout = setTimeout(() => { elements.containers.notification.classList.add('hidden'); }, 3000);
+    }
+
+    function initMaps() {
+        const riyadhCoords = L.latLng(24.7136, 46.6753);
+        if (!appState.maps.bookingMap) {
+            appState.maps.bookingMap = L.map(elements.maps.booking, { zoomControl: false }).setView(riyadhCoords, 11);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(appState.maps.bookingMap);
+            appState.maps.bookingMap.on('click', handleMapClick);
+        }
+        if (!appState.maps.trackingMap) {
+            appState.maps.trackingMap = L.map(elements.maps.tracking, { zoomControl: false }).setView(riyadhCoords, 14);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(appState.maps.trackingMap);
+        }
+        createPickupMarker(riyadhCoords);
+    }
+    
+    function createPickupMarker(coords) {
+        const latLngCoords = L.latLng(coords);
+        const pickupIcon = L.divIcon({ html: '<i class="fas fa-map-marker-alt fa-3x text-green-500"></i>', className: 'bg-transparent border-0', iconAnchor: [12, 40] });
+        if (appState.maps.pickupMarker) appState.maps.pickupMarker.remove();
+        appState.maps.pickupMarker = L.marker(latLngCoords, { icon: pickupIcon, draggable: true }).addTo(appState.maps.bookingMap);
+        appState.pickupCoords = latLngCoords;
+        updateLocationInput(elements.inputs.pickup, latLngCoords);
+        appState.maps.pickupMarker.on('dragend', (e) => { appState.pickupCoords = e.target.getLatLng(); updateLocationInput(elements.inputs.pickup, e.target.getLatLng()); });
+    }
+
+    function handleMapClick(e) {
+        appState.destinationCoords = e.latlng;
+        const destIcon = L.divIcon({ html: '<i class="fas fa-location-arrow fa-3x text-red-500"></i>', className: 'bg-transparent border-0', iconAnchor: [12, 40] });
+        if (!appState.maps.destinationMarker) {
+            appState.maps.destinationMarker = L.marker(e.latlng, { icon: destIcon, draggable: true }).addTo(appState.maps.bookingMap);
+            appState.maps.destinationMarker.on('dragend', (e) => { appState.destinationCoords = e.target.getLatLng(); updateLocationInput(elements.inputs.destination, e.target.getLatLng()); });
+        } else {
+            appState.maps.destinationMarker.setLatLng(e.latlng);
+        }
+        updateLocationInput(elements.inputs.destination, e.latlng);
+    }
+    
+    function getCurrentLocation() {
+        if (!navigator.geolocation) { showNotification("المتصفح لا يدعم تحديد الموقع.", 'error'); return; }
+        showNotification("جاري تحديد موقعك...", 'info');
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const coords = L.latLng(position.coords.latitude, position.coords.longitude);
+                appState.pickupCoords = coords;
+                if(appState.maps.pickupMarker) appState.maps.pickupMarker.setLatLng(coords);
+                appState.maps.bookingMap.setView(coords, 15);
+                updateLocationInput(elements.inputs.pickup, coords);
+                showNotification("تم تحديد موقعك بنجاح.", 'success');
+            },
+            () => { showNotification("لا يمكن الوصول لموقعك.", 'error'); }
+        );
+    }
+    
+    function toggleDarkMode() { document.documentElement.classList.toggle('dark'); const icons = document.querySelectorAll('#dark-mode-toggle i, #dashboard-dark-mode-toggle i'); icons.forEach(icon => { icon.classList.toggle('fa-moon'); icon.classList.toggle('fa-sun'); }); }
+
+    function setupAutocomplete(input, container) {
+        input.addEventListener("input", function() {
+            let a, val = this.value;
+            closeAllLists(); if (!val) { validateInputs(); return; }
+            a = document.createElement("DIV"); a.setAttribute("class", "autocomplete-items"); container.appendChild(a);
+            mockData.locations.filter(loc => loc.name.includes(val)).forEach(loc => {
+                let b = document.createElement("DIV");
+                b.innerHTML = `<strong>${loc.name.substr(0, val.length)}</strong>${loc.name.substr(val.length)}<input type='hidden' value='${JSON.stringify(loc)}'>`;
+                b.addEventListener("click", function() {
+                    const locData = JSON.parse(this.querySelector("input").value); input.value = locData.name; const coords = L.latLng(locData.coords[0], locData.coords[1]);
+                    if (input.id === 'pickup-input') { appState.pickupCoords = coords; appState.maps.pickupMarker.setLatLng(coords); updateLocationInput(input, coords); } 
+                    else { appState.destinationCoords = coords; handleMapClick({latlng: coords}); }
+                    drawRoute(); validateInputs(); closeAllLists();
+                });
+                a.appendChild(b);
+            });
+        });
+        function closeAllLists(elmnt) { const x = document.getElementsByClassName("autocomplete-items"); for (let i = 0; i < x.length; i++) { if (elmnt != x[i] && elmnt != input) { x[i].parentNode.removeChild(x[i]); } } }
+        document.addEventListener("click", (e) => closeAllLists(e.target));
+    }
+
+    function updateLocationInput(input, coords) {
+        if(coords && typeof coords.lat === 'number') {
+            input.value = `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`; drawRoute(); validateInputs();
+        }
+    }
+    
+    function drawRoute() {
+        if (appState.maps.routeLine) appState.maps.routeLine.remove();
+        if (appState.pickupCoords && appState.destinationCoords) {
+            const latlngs = [appState.pickupCoords, appState.destinationCoords];
+            appState.maps.routeLine = L.polyline(latlngs, {color: '#10b981', weight: 5, opacity: 0.8}).addTo(appState.maps.bookingMap);
+            appState.maps.bookingMap.fitBounds(appState.maps.routeLine.getBounds().pad(0.5));
+        }
+    }
+
+    function validateInputs() {
+        const pickupValid = appState.pickupCoords && elements.inputs.pickup.value;
+        const destValid = appState.destinationCoords && elements.inputs.destination.value;
+        let distanceValid = false;
+        if (pickupValid && destValid) { distanceValid = appState.pickupCoords.distanceTo(appState.destinationCoords) >= 100; }
+        elements.buttons.findRides.disabled = !(pickupValid && destValid && distanceValid);
+    }
+    
+    function findRides() {
+        validateInputs(); if (elements.buttons.findRides.disabled) return;
+        showView('selection');
+        elements.containers.loadingSpinner.style.display = 'flex'; elements.containers.ridesList.innerHTML = '';
+        elements.buttons.filterOptions.value = 'all';
+        handleFilterChange({target: elements.buttons.filterOptions});
+    }
+
+    function generateAndRenderRides() {
+        // Use a timeout to allow the loading spinner to render before the heavy calculation
+        setTimeout(() => {
+            const distance = appState.pickupCoords.distanceTo(appState.destinationCoords) / 1000;
+            let allRides = [];
+            mockData.services.forEach(service => {
+                service.carTypes.forEach(carType => {
+                    const rideCount = Math.floor(Math.random() * 8) + 5;
+                    for (let i = 0; i < rideCount; i++) {
+                        const driver = mockData.drivers[Math.floor(Math.random() * mockData.drivers.length)];
+                        const price = (5 + (distance * 1.5 * carType.priceMultiplier) + (Math.random() * 5)); const eta = Math.floor(Math.random() * 12 + 4);
+                        allRides.push({ service, driver, carType, price, eta });
+                    }
+                });
+            });
+
+            const filteredRides = appState.currentFilter === 'all' ? allRides : allRides.filter(r => r.service.id === appState.currentFilter);
+            
+            filteredRides.forEach(r => r.isBest = false);
+            const sortKey = appState.currentSort === 'price' ? 'price' : 'eta';
+            if (appState.currentSort !== 'grouped') filteredRides.sort((a, b) => a[sortKey] - b[sortKey]);
+            if (filteredRides.length > 0) {
+                if (appState.currentSort === 'grouped') {
+                    const bestByPrice = [...filteredRides].sort((a,b) => a.price - b.price)[0];
+                    if(bestByPrice) bestByPrice.isBest = true;
+                } else {
+                    filteredRides[0].isBest = true;
+                }
+            }
+            
+            if (appState.currentSort === 'grouped' && appState.currentFilter === 'all') {
+                const groupedRides = filteredRides.reduce((acc, ride) => { if (!acc[ride.service.id]) acc[ride.service.id] = []; acc[ride.service.id].push(ride); return acc; }, {});
+                renderGroupedRideList(groupedRides);
+            } else {
+                renderFlatRideList(filteredRides);
+            }
+            elements.containers.loadingSpinner.style.display = 'none';
+        }, 200);
+    }
+
+    function renderGroupedRideList(groupedRides) {
+        elements.containers.ridesList.innerHTML = '';
+        mockData.services.forEach(service => {
+            const ridesForService = groupedRides[service.id];
+            if (!ridesForService) return;
+            const serviceGroupEl = document.createElement('div'); 
+            serviceGroupEl.className = `rounded-xl shadow-lg p-4 space-y-3 overflow-hidden ${service.bgColor}`;
+            const headerEl = document.createElement('div'); headerEl.className = "flex items-center justify-between mb-3";
+            headerEl.innerHTML = `<div class="flex items-center"><img src="${service.logo}" class="w-10 h-10 ml-4 object-contain rounded-md bg-white p-1 shadow"><h3 class="text-lg font-bold ${service.textColor}">${service.name}</h3></div><span class="bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 text-sm font-semibold px-2.5 py-0.5 rounded-full">${ridesForService.length} رحلات</span>`;
+            serviceGroupEl.appendChild(headerEl);
+            ridesForService.sort((a,b) => a.price - b.price).forEach(rideData => serviceGroupEl.appendChild(createRideCard(rideData)));
+            elements.containers.ridesList.appendChild(serviceGroupEl);
+        });
+    }
+
+    function renderFlatRideList(allRides) {
+        elements.containers.ridesList.innerHTML = '';
+        if (allRides.length === 0) {
+            elements.containers.ridesList.innerHTML = `<p class="text-center p-10 text-gray-500">لا توجد رحلات متاحة لهذا التطبيق.</p>`;
+        } else {
+            allRides.forEach(rideData => elements.containers.ridesList.appendChild(createRideCard(rideData, true)));
+        }
+    }
+
+    function createRideCard(rideData, showServiceLogo = false) {
+        const card = document.createElement('div'); card.className = "relative flex items-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg hover:bg-white dark:hover:bg-gray-800 transition-all cursor-pointer";
+        let bestOptionBadge = '';
+        if (rideData.isBest) {
+            const badgeText = (appState.currentSort === 'eta' && appState.currentFilter !== 'all') ? 'الأسرع' : 'الأوفر';
+            bestOptionBadge = `<div class="best-option-badge"><i class="fas fa-star fa-xs mr-1.5"></i> ${badgeText}</div>`;
+        }
+        const logoHtml = showServiceLogo ? `<img src="${rideData.service.logo}" class="w-12 h-12 p-1 rounded-md object-contain bg-white shadow">` : `<div class="w-12 text-center text-teal-500"><i class="${rideData.carType.icon} fa-2x"></i></div>`;
+        const serviceNameHtml = showServiceLogo ? `<span class="text-xs font-normal ${rideData.service.textColor}">(${rideData.service.name})</span>` : '';
+        card.innerHTML = `${bestOptionBadge}${logoHtml}<div class="mr-4 flex-grow"><p class="font-bold text-md">${rideData.carType.name} ${serviceNameHtml}</p><p class="text-xs text-gray-600 dark:text-gray-400">${rideData.driver.name} <i class="fas fa-star text-yellow-400"></i> ${rideData.driver.rating}</p></div><div class="text-left"><p class="font-bold text-lg text-teal-600 dark:text-teal-400">${rideData.price.toFixed(2)} ر.س</p><p class="text-sm text-gray-600 dark:text-gray-300">يصل خلال ${rideData.eta} د</p></div>`;
+        card.addEventListener('click', () => selectRide(rideData));
+        return card;
+    }
+
+    function handleFilterChange(e) { appState.currentFilter = e.target.value; updateSortOptions(); generateAndRenderRides(); }
+    function handleSortChange(e) { appState.currentSort = e.target.value; generateAndRenderRides(); }
+
+    function updateSortOptions() {
+        const sortSelect = elements.buttons.sortOptions;
+        if (appState.currentFilter === 'all') {
+            sortSelect.innerHTML = `<option value="grouped">بالتطبيق</option><option value="price">السعر (الكل)</option><option value="eta">الوصول (الكل)</option>`;
+            sortSelect.value = 'grouped';
+        } else {
+            sortSelect.innerHTML = `<option value="price">السعر (الأقل)</option><option value="eta">الوصول (الأسرع)</option>`;
+            sortSelect.value = 'price';
+        }
+        appState.currentSort = sortSelect.value;
+    }
+
+    function selectRide(rideData) {
+        appState.selectedRide = rideData;
+        elements.containers.confirmRideDetails.innerHTML = `<div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">التطبيق:</span><div class="flex items-center font-bold"><img src="${rideData.service.logo}" class="w-5 h-5 ml-2 rounded">${rideData.service.name}</div></div><div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">السيارة:</span><span class="font-bold">${rideData.carType.name}</span></div><div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">السائق:</span><span class="font-bold">${rideData.driver.name} (${rideData.driver.rating} ★)</span></div><hr class="border-gray-300 dark:border-gray-600"><div class="flex items-center justify-between text-teal-600 dark:text-teal-400"><span class="font-bold text-lg">السعر:</span><span class="font-bold text-xl">${rideData.price.toFixed(2)} ر.س</span></div>`;
+        showModal('confirmation');
+    }
+
+    function confirmBooking() {
+        hideModal('confirmation'); showView('tracking');
+        elements.containers.tripStatusPanel.innerHTML = `<p id="trip-status-text" class="text-center text-xl font-bold text-teal-600 dark:text-teal-400"></p><div class="flex items-center p-3 bg-gray-100 dark:bg-gray-700 rounded-lg"><img src="${appState.selectedRide.driver.img}" class="w-16 h-16 rounded-full border-2 border-teal-500 object-cover"><div class="mr-4 flex-grow"><h3 class="font-bold text-lg">${appState.selectedRide.driver.name}</h3><p class="text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-star text-yellow-400"></i> ${appState.selectedRide.driver.rating}</p></div><div class="text-left"><p class="font-semibold">${appState.selectedRide.carType.name}</p><p class="text-sm bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${['أ','ب','ح','ر','س'][Math.floor(Math.random()*5)]} ${Math.floor(1000+Math.random()*9000)}</p></div></div><div class="flex justify-around pt-2"><button class="flex flex-col items-center text-gray-600 hover:text-teal-500"><i class="fas fa-phone-alt fa-2x"></i><span class="text-xs mt-1">اتصال</span></button><button class="flex flex-col items-center text-gray-600 hover:text-teal-500"><i class="fas fa-comment-dots fa-2x"></i><span class="text-xs mt-1">مراسلة</span></button><button id="cancel-trip-btn-inner" class="flex flex-col items-center text-red-500 hover:text-red-700"><i class="fas fa-times-circle fa-2x"></i><span class="text-xs mt-1">إلغاء</span></button></div>`;
+        document.getElementById('cancel-trip-btn-inner').addEventListener('click', cancelTripCompletely);
+        startTripSimulation();
+    }
+    
+    function startTripSimulation() {
+        if (appState.tripAnimationInterval) clearInterval(appState.tripAnimationInterval);
+        const pickup = appState.pickupCoords, destination = appState.destinationCoords, tripStatusTextEl = document.getElementById('trip-status-text');
+        appState.maps.trackingMap.eachLayer(layer => { if (layer instanceof L.Marker || layer instanceof L.Polyline) layer.remove(); });
+        const driverStartOffset = 0.005; let driverCurrentPos = L.latLng(pickup.lat + (Math.random() - 0.5) * driverStartOffset, pickup.lng + (Math.random() - 0.5) * driverStartOffset);
+        const bounds = L.latLngBounds(pickup, destination).extend(driverCurrentPos);
+        appState.maps.trackingMap.fitBounds(bounds.pad(0.5));
+        const driverIcon = L.divIcon({ html: `<i class="${appState.selectedRide.carType.icon} fa-2x text-teal-500"></i>`, className: 'bg-transparent', iconSize: [24, 24], iconAnchor: [12, 12] });
+        appState.maps.driverMarker = L.marker(driverCurrentPos, { icon: driverIcon }).addTo(appState.maps.trackingMap);
+        L.marker(pickup, {icon: L.divIcon({ html: '<i class="fas fa-map-marker-alt fa-2x text-green-500"></i>', className: 'bg-transparent', iconAnchor: [12, 40] }) }).addTo(appState.maps.trackingMap);
+        L.marker(destination, {icon: L.divIcon({ html: '<i class="fas fa-location-arrow fa-2x text-red-500"></i>', className: 'bg-transparent', iconAnchor: [12, 40] }) }).addTo(appState.maps.trackingMap);
+        tripStatusTextEl.textContent = `السائق ${appState.selectedRide.driver.name} في الطريق...`;
+        let i = 0;
+        appState.tripAnimationInterval = setInterval(() => {
+            if (i >= 100) {
+                clearInterval(appState.tripAnimationInterval); if(appState.selectedRide) tripStatusTextEl.textContent = 'السائق ينتظرك';
+                setTimeout(() => {
+                    if(!appState.selectedRide) return; tripStatusTextEl.textContent = 'الرحلة بدأت!';
+                    let j = 0;
+                    appState.tripAnimationInterval = setInterval(() => {
+                        if (j > 100) { clearInterval(appState.tripAnimationInterval); finishTrip(); return; }
+                        const newPos = L.latLng(pickup.lat + (destination.lat - pickup.lat) * (j/100), pickup.lng + (destination.lng - pickup.lng) * (j/100));
+                        if (appState.maps.driverMarker) appState.maps.driverMarker.setLatLng(newPos); j++;
+                    }, 150);
+                }, 2000);
+                return;
+            }
+            const newPos = L.latLng(driverCurrentPos.lat + (pickup.lat - driverCurrentPos.lat) * (i/100), driverCurrentPos.lng + (pickup.lng - driverCurrentPos.lng) * (i/100));
+            if (appState.maps.driverMarker) appState.maps.driverMarker.setLatLng(newPos); i+=2;
+        }, 50);
+    }
+
+    function finishTrip() { if(document.getElementById('trip-status-text')) document.getElementById('trip-status-text').textContent = 'لقد وصلت!'; setTimeout(showRatingModal, 2000); }
+    function stopTripSimulation() { if (appState.tripAnimationInterval) clearInterval(appState.tripAnimationInterval); appState.selectedRide = null; }
+    function returnToSelection() { stopTripSimulation(); showView('selection'); }
+    function cancelTripCompletely() { hideModal('rating'); hideModal('confirmation'); stopTripSimulation(); resetBookingView(); showView('booking'); }
+    function showRatingModal() { const ride = appState.selectedRide; if(!ride) return; elements.rating.driverImg.src = ride.driver.img; elements.rating.driverName.textContent = ride.driver.name; resetRating(); showModal('rating'); }
+    function handleStarRating(e) { if (e.target.matches('.fa-star')) { appState.currentRating = parseInt(e.target.dataset.value); elements.rating.stars.forEach((star, i) => { star.classList.toggle('fas', i < appState.currentRating); star.classList.toggle('far', i >= appState.currentRating); star.classList.toggle('text-yellow-400', i < appState.currentRating); star.classList.toggle('text-gray-300', i >= appState.currentRating); }); } }
+    function resetRating() { appState.currentRating = 0; elements.inputs.ratingComment.value = ''; elements.rating.stars.forEach(star => { star.classList.remove('fas', 'text-yellow-400'); star.classList.add('far', 'text-gray-300'); }); }
+    function addTripToHistory() { if (!appState.selectedRide) return; const completedTrip = { ...appState.selectedRide, date: new Date().toLocaleDateString('ar-SA'), from: elements.inputs.pickup.value, to: elements.inputs.destination.value, userRating: appState.currentRating }; mockData.tripHistory.unshift(completedTrip); elements.profile.notificationDot.classList.remove('hidden'); }
+    function submitRating() { addTripToHistory(); showNotification("شكراً لتقييمك!", "success"); cancelTripCompletely(); }
+    function skipRating() { addTripToHistory(); cancelTripCompletely(); }
+    
+    function showProfileView() { showView('profile'); updateTripHistoryUI(); elements.profile.notificationDot.classList.add('hidden'); }
+    function updateTripHistoryUI() {
+        elements.containers.tripHistoryList.innerHTML = '';
+        if (mockData.tripHistory.length === 0) {
+            elements.containers.noHistoryMsg.style.display = 'block';
+        } else {
+            elements.containers.noHistoryMsg.style.display = 'none';
+            mockData.tripHistory.forEach(trip => {
+                const card = document.createElement('div'); card.className = "p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm";
+                card.innerHTML = `<div class="flex justify-between items-center"><div class="flex items-center gap-3"><img src="${trip.service.logo}" class="w-10 h-10 object-contain rounded-md bg-white p-1 shadow"><div><p class="font-bold">${trip.carType.name}</p><p class="text-sm text-gray-500">${trip.date}</p></div></div><p class="font-semibold text-teal-600">${trip.price.toFixed(2)} ر.س</p></div><div class="mt-2 text-xs text-gray-600 dark:text-gray-400 space-y-1"><p><i class="fas fa-map-marker-alt text-green-500 mr-2 w-4 text-center"></i>${trip.from}</p><p><i class="fas fa-location-arrow text-red-500 mr-2 w-4 text-center"></i>${trip.to}</p></div>${trip.userRating > 0 ? `<div class="mt-2 pt-2 border-t dark:border-gray-700"><p class="text-sm">تقييمك: <span class="text-yellow-400">${'★'.repeat(trip.userRating)}</span><span class="text-gray-300">${'☆'.repeat(5-trip.userRating)}</span></p></div>` : ''}`;
+                elements.containers.tripHistoryList.appendChild(card);
+            });
+        }
+    }
+
+    function populateProfileView() {
+        const user = mockData.currentUser;
+        elements.profile.avatar.src = user.avatar;
+        elements.profile.name.textContent = user.name;
+        elements.profile.email.textContent = user.email;
+    }
+
+    function populateSideMenu() {
+        const content = elements.containers.sideMenuContent; content.innerHTML = '';
+        mockData.services.forEach(service => {
+            const item = document.createElement('div');
+            item.className = "flex items-start gap-4 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700";
+            item.innerHTML = `<img src="${service.logo}" class="w-12 h-12 object-contain rounded-lg bg-white p-1 shadow-md flex-shrink-0"><div class="flex-grow"><h3 class="font-bold">${service.name}</h3><p class="text-sm text-gray-600 dark:text-gray-400">${service.description}</p></div>`;
+            content.appendChild(item);
+        });
+    }
+
+    function openSideMenu() { elements.containers.sideMenuOverlay.classList.remove('hidden'); elements.containers.sideMenu.classList.remove('translate-x-full'); }
+    function closeSideMenu() { elements.containers.sideMenuOverlay.classList.add('hidden'); elements.containers.sideMenu.classList.add('translate-x-full'); }
+    
+    function populateFilterOptions() {
+        const filterSelect = elements.buttons.filterOptions;
+        filterSelect.innerHTML = `<option value="all">كل التطبيقات</option>`;
+        mockData.services.forEach(service => { filterSelect.innerHTML += `<option value="${service.id}">${service.name}</option>`; });
+    }
+    
+    function resetBookingView() {
+        elements.inputs.pickup.value = ''; elements.inputs.destination.value = ''; appState.pickupCoords = null; appState.destinationCoords = null;
+        if(appState.maps.destinationMarker) { appState.maps.destinationMarker.remove(); appState.maps.destinationMarker = null; }
+        if(appState.maps.routeLine) { appState.maps.routeLine.remove(); appState.maps.routeLine = null; }
+        initMaps(); validateInputs();
+    }
+    
+    function handleLogin() {
+        const email = elements.inputs.email.value;
+        const password = elements.inputs.password.value;
+        if (email === "demo@qaren.com" && password === "123456") {
+            showView('dashboard');
+        } else {
+            showNotification("البريد الإلكتروني أو كلمة المرور غير صحيحة", "error");
+        }
+    }
+
+    function addEventListeners() {
+        elements.buttons.darkModeToggle.addEventListener('click', toggleDarkMode);
+        elements.buttons.dashboardDarkModeToggle.addEventListener('click', toggleDarkMode);
+        elements.buttons.findRides.addEventListener('click', findRides);
+        elements.buttons.getLocation.addEventListener('click', getCurrentLocation);
+        elements.buttons.profile.addEventListener('click', showProfileView);
+        elements.buttons.menuBtn.addEventListener('click', openSideMenu);
+        elements.buttons.sideMenuCloseBtn.addEventListener('click', closeSideMenu);
+        elements.containers.sideMenuOverlay.addEventListener('click', closeSideMenu);
+        elements.buttons.backToBooking.addEventListener('click', () => showView('booking'));
+        elements.buttons.backFromProfile.addEventListener('click', () => showView('booking'));
+        elements.buttons.backToDashboardBtn.addEventListener('click', () => showView('dashboard'));
+        elements.buttons.backToSelection.addEventListener('click', returnToSelection);
+        elements.buttons.confirmBooking.addEventListener('click', confirmBooking);
+        elements.buttons.changeSelection.addEventListener('click', () => hideModal('confirmation'));
+        elements.buttons.submitRating.addEventListener('click', submitRating);
+        elements.buttons.skipRating.addEventListener('click', skipRating);
+        elements.rating.starContainer.addEventListener('click', handleStarRating);
+        elements.buttons.sortOptions.addEventListener('change', handleSortChange);
+        elements.buttons.filterOptions.addEventListener('change', handleFilterChange);
+        elements.buttons.loginBtn.addEventListener('click', handleLogin);
+        elements.buttons.taxiBtn.addEventListener('click', () => { showView('booking'); resetBookingView(); });
+        const comingSoon = () => showNotification('هذه الخدمة ستتوفر قريباً!', 'info');
+        elements.buttons.restaurantsBtn.addEventListener('click', comingSoon);
+        elements.buttons.parcelsBtn.addEventListener('click', comingSoon);
+        elements.buttons.ticketsBtn.addEventListener('click', comingSoon);
+        setupAutocomplete(elements.inputs.pickup, elements.inputs.pickup.closest('.relative'));
+        setupAutocomplete(elements.inputs.destination, elements.inputs.destination.closest('.relative'));
+        elements.inputs.pickup.addEventListener('input', validateInputs);
+        elements.inputs.destination.addEventListener('input', validateInputs);
+    }
+
+    function init() {
+        populateFilterOptions(); populateSideMenu(); populateProfileView();
+        addEventListeners(); showView('login');
+    }
+
+    init();
+});
+</script>
+</body>
+</html>
