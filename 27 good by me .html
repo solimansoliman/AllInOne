@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const badgeText = (appState.currentSort === 'eta' && appState.currentFilter !== 'all') ? 'الأسرع' : 'الأوفر';
             bestOptionBadge = `<div class="best-option-badge"><i class="fas fa-star fa-xs mr-1.5"></i> ${badgeText}</div>`;
         }
-        const logoHtml = showServiceLogo ? `<img src="${rideData.service.logo}" alt="Uber app icon"  class="w-12 h-12 p-1 rounded-md object-contain bg-white shadow">` : `<div class="w-12 text-center text-teal-500"><i class="${rideData.carType.icon} fa-2x"></i></div>`;
+        const logoHtml = showServiceLogo ? `<img src="${rideData.service.logo}" class="w-12 h-12 p-1 rounded-md object-contain bg-white shadow">` : `<div class="w-12 text-center text-teal-500"><i class="${rideData.carType.icon} fa-2x"></i></div>`;
         const serviceNameHtml = showServiceLogo ? `<span class="text-xs font-normal ${rideData.service.textColor}">(${rideData.service.name})</span>` : '';
         card.innerHTML = `${bestOptionBadge}${logoHtml}<div class="mr-4 flex-grow"><p class="font-bold text-md">${rideData.carType.name} ${serviceNameHtml}</p><p class="text-xs text-gray-600 dark:text-gray-400">${rideData.driver.name} <i class="fas fa-star text-yellow-400"></i> ${rideData.driver.rating}</p></div><div class="text-left"><p class="font-bold text-lg text-teal-600 dark:text-teal-400">${rideData.price.toFixed(2)} ر.س</p><p class="text-sm text-gray-600 dark:text-gray-300">يصل خلال ${rideData.eta} د</p></div>`;
         card.addEventListener('click', () => selectRide(rideData));
